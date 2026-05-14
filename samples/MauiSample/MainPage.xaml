@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:touch="clr-namespace:AppoMobi.Maui.Gestures;assembly=AppoMobi.Maui.Gestures"
+             xmlns:local="clr-namespace:MauiSample"
+             x:Class="MauiSample.MainPage"
+             Title="Gesture Demo">
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="12" RowSpacing="12">
+
+        <!-- Stats bar -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,*,*">
+            <VerticalStackLayout Grid.Column="0" HorizontalOptions="Center">
+                <Label Text="Taps" FontSize="11" TextColor="Gray" HorizontalTextAlignment="Center"/>
+                <Label x:Name="TapCountLabel" Text="0" FontSize="22" FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" TextColor="{StaticResource Primary}"/>
+            </VerticalStackLayout>
+            <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center">
+                <Label Text="Last gesture" FontSize="11" TextColor="Gray" HorizontalTextAlignment="Center"/>
+                <Label x:Name="LastGestureLabel" Text="—" FontSize="14" FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" LineBreakMode="TailTruncation"/>
+            </VerticalStackLayout>
+            <VerticalStackLayout Grid.Column="2" HorizontalOptions="Center">
+                <Label Text="Touches" FontSize="11" TextColor="Gray" HorizontalTextAlignment="Center"/>
+                <Label x:Name="TouchCountLabel" Text="0" FontSize="22" FontAttributes="Bold"
+                       HorizontalTextAlignment="Center" TextColor="{StaticResource Tertiary}"/>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Gesture pad -->
+        <local:GesturePad Grid.Row="1"
+                          x:Name="Pad"
+                          BackgroundColor="#EEF0FF"
+                          Stroke="{StaticResource Primary}"
+                          StrokeThickness="2"
+                          touch:TouchEffect.ShareTouch="Lock"
+                          touch:TouchEffect.ForceAttach="True">
+            <local:GesturePad.StrokeShape>
+                <RoundRectangle CornerRadius="16"/>
+            </local:GesturePad.StrokeShape>
+
+            <Grid>
+                <!-- Instructions -->
+                <Label x:Name="HintLabel"
+                       Text="Touch here&#10;&#10;Tap · Double-Tap · Long Press&#10;Pan · Pinch · Scroll Wheel"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       TextColor="#8888BB"
+                       FontSize="16"
+                       HorizontalTextAlignment="Center"/>
+
+                <!-- Moveable touch indicator -->
+                <Ellipse x:Name="TouchDot"
+                         Fill="{StaticResource Primary}"
+                         WidthRequest="40"
+                         HeightRequest="40"
+                         Opacity="0.6"
+                         IsVisible="False"
+                         HorizontalOptions="Start"
+                         VerticalOptions="Start"/>
+            </Grid>
+        </local:GesturePad>
+
+        <!-- Event log -->
+        <Border Grid.Row="2" HeightRequest="180"
+                BackgroundColor="#F5F5F5"
+                Stroke="{StaticResource Gray200}"
+                StrokeThickness="1">
+            <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
+            <ScrollView x:Name="LogScroll">
+                <VerticalStackLayout x:Name="LogStack" Padding="8" Spacing="2"/>
+            </ScrollView>
+        </Border>
+
+    </Grid>
+</ContentPage>

@@ -3,7 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33723.286
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppoMobi.Maui.Gestures", "src\AppoMobi.Maui.Gestures.csproj", "{3FE4683E-E7A6-4544-B387-08C4C6164DF0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppoMobi.Gestures", "src\AppoMobi.Gestures\AppoMobi.Gestures.csproj", "{B7E4A1D9-F356-4C82-A0B3-9E7F28D4C156}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppoMobi.Blazor.Gestures", "src\AppoMobi.Blazor.Gestures\AppoMobi.Blazor.Gestures.csproj", "{C3D8F4A2-B1E7-4D95-A2C6-5F0B29E87A41}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppoMobi.Maui.Gestures", "src\AppoMobi.Maui.Gestures\AppoMobi.Maui.Gestures.csproj", "{3FE4683E-E7A6-4544-B387-08C4C6164DF0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MauiSample", "samples\MauiSample\MauiSample.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorWasmSample", "samples\BlazorWasmSample\BlazorWasmSample.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
@@ -16,10 +24,26 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7E4A1D9-F356-4C82-A0B3-9E7F28D4C156}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7E4A1D9-F356-4C82-A0B3-9E7F28D4C156}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7E4A1D9-F356-4C82-A0B3-9E7F28D4C156}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7E4A1D9-F356-4C82-A0B3-9E7F28D4C156}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D8F4A2-B1E7-4D95-A2C6-5F0B29E87A41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D8F4A2-B1E7-4D95-A2C6-5F0B29E87A41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D8F4A2-B1E7-4D95-A2C6-5F0B29E87A41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D8F4A2-B1E7-4D95-A2C6-5F0B29E87A41}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3FE4683E-E7A6-4544-B387-08C4C6164DF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3FE4683E-E7A6-4544-B387-08C4C6164DF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3FE4683E-E7A6-4544-B387-08C4C6164DF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3FE4683E-E7A6-4544-B387-08C4C6164DF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2C3D4E5-F6A7-8901-BCDE-F12345678901}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,109 @@
+@page "/"
+@implements IGestureListener
+@implements IAsyncDisposable
+@inject BlazorGestureEffect GestureEffect
+
+<div class="page">
+    <h1>Gesture Demo</h1>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-value">@_tapCount</div>
+            <div class="stat-label">Taps</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" style="font-size:1rem;padding-top:0.5rem">@_lastGesture</div>
+            <div class="stat-label">Last gesture</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" style="color:#2B0B98">@_touchCount</div>
+            <div class="stat-label">Touches</div>
+        </div>
+    </div>
+
+    <!-- touch-action:none is required on the gesture target -->
+    <div class="gesture-area" @ref="_gestureArea">
+        @if (!_dotVisible)
+        {
+            <span class="gesture-hint">
+                Touch here<br/><br/>
+                Tap · Double-Tap · Long Press<br/>
+                Pan · Pinch · Scroll Wheel
+            </span>
+        }
+        @if (_dotVisible)
+        {
+            <div class="touch-dot" style="left:@(_dotX)px;top:@(_dotY)px;"></div>
+        }
+    </div>
+
+    <div class="log-box">
+        @foreach (var line in _log)
+        {
+            <div class="log-line">@line</div>
+        }
+    </div>
+</div>
+
+@code {
+    private ElementReference _gestureArea;
+    private int _tapCount;
+    private string _lastGesture = "—";
+    private int _touchCount;
+    private bool _dotVisible;
+    private double _dotX, _dotY;
+    private readonly List<string> _log = new();
+    private const int MaxLog = 30;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await GestureEffect.AttachAsync(_gestureArea, this);
+    }
+
+    // IGestureListener
+    public bool InputTransparent => false;
+
+    public void OnGestureEvent(TouchActionType type, TouchActionEventArgs args, TouchActionResult action)
+    {
+        _touchCount = args.NumberOfTouches;
+
+        bool moving = type is TouchActionType.Pressed or TouchActionType.Moved;
+        _dotVisible = moving;
+        if (moving)
+        {
+            _dotX = args.Location.X;
+            _dotY = args.Location.Y;
+        }
+
+        string? msg = action switch
+        {
+            TouchActionResult.Tapped                                 => $"Tap #{++_tapCount}",
+            TouchActionResult.LongPressing                           => "Long press",
+            TouchActionResult.Panning when args.Manipulation != null => $"Pinch  scale={args.Manipulation.Scale:F2}",
+            TouchActionResult.Panning                                => $"Pan  Δ({args.Distance?.Delta.X:F0}, {args.Distance?.Delta.Y:F0})",
+            TouchActionResult.Wheel                                  => $"Wheel  Δ={args.Wheel?.Delta:F1}",
+            _                                                        => null
+        };
+
+        if (msg != null)
+        {
+            _lastGesture = msg;
+            _log.Insert(0, $"{DateTime.Now:HH:mm:ss.fff}  {msg}");
+            if (_log.Count > MaxLog) _log.RemoveAt(_log.Count - 1);
+        }
+
+        if (!moving && type is TouchActionType.Released or TouchActionType.Cancelled)
+        {
+            _dotVisible = false;
+            _touchCount = 0;
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await GestureEffect.DisposeAsync();
+    }
+}
