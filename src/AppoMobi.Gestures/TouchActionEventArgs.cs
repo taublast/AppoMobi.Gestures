@@ -5,6 +5,12 @@ namespace AppoMobi.Gestures
     /// </summary>
     public class TouchActionEventArgs : EventArgs
     {
+        /// <summary>
+        /// Source scale of the coordinate values carried by this event.
+        /// On Blazor this is typically the effect density used when the event was created.
+        /// Use <see cref="Rescale(float)"/> when your rendering surface uses a different scale.
+        /// </summary>
+        public float Scale { get; set; }
         public float DeltaTimeMs { get; set; }
         public DateTime Timestamp { get; set; } = DateTime.Now;
 
@@ -105,20 +111,95 @@ namespace AppoMobi.Gestures
             this.Distance.Velocity = velocity;
         }
 
+        /// <summary>
+        /// Creates a copy of this event args instance with all coordinate-based values rescaled
+        /// from <see cref="Scale"/> into the consumer's rendering scale.
+        /// </summary>
+        /// <param name="scale">The consumer rendering scale. Invalid values are treated as 1.</param>
+        /// <returns>
+        /// The current instance when <paramref name="scale"/> matches <see cref="Scale"/>;
+        /// otherwise a scaled copy with updated location, start position, distance, wheel center,
+        /// and manipulation centers.
+        /// </returns>
+        public TouchActionEventArgs Rescale(float scale)
+        {
+            float density = this.Scale;
+
+            if (float.IsNaN(scale) || float.IsInfinity(scale) || scale <= 0)
+                scale = 1.0f;
+
+            if (float.IsNaN(density) || float.IsInfinity(density) || density <= 0)
+                density = 1.0f;
+
+            var dispatchScale = scale / density;
+
+            if (dispatchScale == 1.0f)
+                return this;
+
+            var scaled = new TouchActionEventArgs(Id, Type, PointFExtensions.Multiply(dispatchScale, Location), Context, scale)
+            {
+                DeltaTimeMs = DeltaTimeMs,
+                Timestamp = Timestamp,
+                PreventDefault = PreventDefault,
+                StartingLocation = PointFExtensions.Multiply(dispatchScale, StartingLocation),
+                IsInContact = IsInContact,
+                IsInsideView = IsInsideView,
+                Handled = Handled,
+                NumberOfTouches = NumberOfTouches,
+                Pointer = Pointer
+            };
+
+            scaled.Distance = new DistanceInfo
+            {
+                Delta = PointFExtensions.Multiply(dispatchScale, Distance.Delta),
+                Total = PointFExtensions.Multiply(dispatchScale, Distance.Total),
+                TotalVelocity = PointFExtensions.Multiply(dispatchScale, Distance.TotalVelocity),
+                Velocity = PointFExtensions.Multiply(dispatchScale, Distance.Velocity),
+                Start = PointFExtensions.Multiply(dispatchScale, Distance.Start),
+                End = PointFExtensions.Multiply(dispatchScale, Distance.End)
+            };
+
+            if (Wheel != null)
+            {
+                scaled.Wheel = new WheelEventArgs
+                {
+                    Delta = Wheel.Delta,
+                    Scale = Wheel.Scale,
+                    Center = PointFExtensions.Multiply(dispatchScale, Wheel.Center)
+                };
+            }
+
+            if (Manipulation != null)
+            {
+                scaled.Manipulation = new ManipulationInfo(
+                    PointFExtensions.Multiply(dispatchScale, Manipulation.Center),
+                    PointFExtensions.Multiply(dispatchScale, Manipulation.PreviousCenter),
+                    Manipulation.Scale,
+                    Manipulation.Rotation,
+                    Manipulation.ScaleTotal,
+                    Manipulation.RotationTotal,
+                    Manipulation.TouchesCount);
+            }
+
+            return scaled;
+        }
+
         public TouchActionEventArgs(long id, TouchActionType type,
             PointF location,
-            object? elementBindingContext)
+            object? elementBindingContext, float scale)
         {
             Id = id;
             Type = type;
             Location = location;
             Context = elementBindingContext;
+            Scale = scale;
             Distance = new DistanceInfo();
         }
 
-        public TouchActionEventArgs()
+        public TouchActionEventArgs(float scale)
         {
             Distance = new DistanceInfo();
+            Scale = scale;
         }
 
         public long Id { private set; get; }

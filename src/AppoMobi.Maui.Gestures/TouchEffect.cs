@@ -689,7 +689,6 @@ namespace AppoMobi.Gestures
 
         public TouchActionResult LastActionResult { get; protected set; }
 
-
         void SendAction(IGestureListener listener, TouchActionType action, TouchActionEventArgs args, TouchActionResult result)
         {
 #if ANDROID

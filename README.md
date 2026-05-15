@@ -55,7 +55,7 @@ public interface IGestureListener
 | `Wheel` | Mouse wheel / trackpad scroll |
 | `Pointer` | Mouse/pen hover (no button held) |
 
-`TouchActionEventArgs` carries everything: pixel location, velocity, distance totals, multi-touch manipulation (scale/rotation), mouse button state, pointer device type.
+`TouchActionEventArgs` carries everything: pixel location, source coordinate scale, velocity, distance totals, multi-touch manipulation (scale/rotation), mouse button state, pointer device type.
 
 ---
 
@@ -249,7 +249,7 @@ if (args.Wheel != null)
 
 ---
 
-## Touch Handling Modes (MAUI)
+## Touch Handling Modes
 
 | Mode | Description |
 |------|-------------|
@@ -314,12 +314,32 @@ public class MyCarousel : ContentView, IGestureListener
 }
 ```
 
----
+## Coordinate Scaling
+
+For cases when you app renders with a scale different from the native area gestures were attached to (Blazor etc), the following could help.
+
+`TouchActionEventArgs.Scale` stores the source scale used when the event was produced.
+If your rendering surface uses a different scale, call `args.Rescale(renderingScale)` inside `OnGestureEvent` and use the returned event for hit testing or game logic.
+
+```csharp
+var gestureArgs = args;
+
+if (renderingScale != args.Scale)
+{
+    gestureArgs = args.Rescale(renderingScale);
+}
+
+UseGesture(gestureArgs);
+```
+
+`Rescale` uses the ratio `renderingScale / args.Scale` internally and returns the original instance when no rescaling is needed.
+
 
 ## Gesture Data Reference
 
 ```csharp
 // TouchActionEventArgs
+args.Scale             // float  — source scale of the coordinates carried by this event
 args.Location          // PointF — current hit position in pixels (CSS pixels on web)
 args.StartingLocation  // PointF — where the gesture began
 args.NumberOfTouches   // int   — active touch/pointer count

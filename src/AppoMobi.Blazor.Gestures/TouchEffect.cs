@@ -123,7 +123,7 @@ public class TouchEffect : IAsyncDisposable
         if (type == TouchActionType.Pressed)
             _activePointers.Add(p.PointerId);
 
-        var args = new TouchActionEventArgs(p.PointerId, type, new PointF(p.OffsetX, p.OffsetY), null)
+        var args = new TouchActionEventArgs(p.PointerId, type, new PointF(p.OffsetX, p.OffsetY), null, Density)
         {
             IsInsideView = p.IsInsideView,
             NumberOfTouches = _activePointers.Count,
@@ -156,7 +156,7 @@ public class TouchEffect : IAsyncDisposable
     public int OnCanvasWheel(BlazorWheelArgs w)
     {
         var location = new PointF(w.OffsetX, w.OffsetY);
-        var args = new TouchActionEventArgs(0, TouchActionType.Wheel, location, null)
+        var args = new TouchActionEventArgs(0, TouchActionType.Wheel, location, null, Density)
         {
             IsInsideView = true,
             Wheel = new WheelEventArgs { Delta = w.DeltaY, Center = location }
