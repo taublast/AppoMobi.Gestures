@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>2.1.2-pre1</Version>
+		<Version>2.1.2-pre3</Version>
         <Title>AppoMobi.Blazor.Gestures</Title>
 		<Description>Blazor implementation of AppoMobi.Gestures — pointer, touch and wheel gesture handling via JS interop</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>

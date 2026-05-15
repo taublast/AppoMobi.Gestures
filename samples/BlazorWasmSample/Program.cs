@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using AppoMobi.Blazor.Gestures;
+using AppoMobi.Gestures;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<BlazorWasmSample.App>("#app");

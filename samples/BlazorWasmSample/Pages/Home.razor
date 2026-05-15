@@ -1,7 +1,8 @@
 @page "/"
+@using System.Drawing
 @implements IGestureListener
 @implements IAsyncDisposable
-@inject BlazorGestureEffect GestureEffect
+@inject TouchEffect GestureEffect
 
 <div class="page">
     <h1>Gesture Demo</h1>
@@ -18,6 +19,14 @@
         <div class="stat">
             <div class="stat-value" style="color:#2B0B98">@_touchCount</div>
             <div class="stat-label">Touches</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value stat-value-compact">@_lastPoint</div>
+            <div class="stat-label">Last point</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value stat-value-compact">@_lastTapPoint</div>
+            <div class="stat-label">Last tap point</div>
         </div>
     </div>
 
@@ -52,6 +61,8 @@
     private int _touchCount;
     private bool _dotVisible;
     private double _dotX, _dotY;
+    private string _lastPoint = "—";
+    private string _lastTapPoint = "—";
     private readonly List<string> _log = new();
     private const int MaxLog = 30;
 
@@ -67,6 +78,7 @@
     public void OnGestureEvent(TouchActionType type, TouchActionEventArgs args, TouchActionResult action)
     {
         _touchCount = args.NumberOfTouches;
+        _lastPoint = FormatPoint(args.Location);
 
         bool moving = type is TouchActionType.Pressed or TouchActionType.Moved;
         _dotVisible = moving;
@@ -78,13 +90,18 @@
 
         string? msg = action switch
         {
-            TouchActionResult.Tapped                                 => $"Tap #{++_tapCount}",
-            TouchActionResult.LongPressing                           => "Long press",
+            TouchActionResult.Down                                   => $"Down  type={type} at {FormatPoint(args.Location)} touches={args.NumberOfTouches}",
+            TouchActionResult.Up                                     => $"Up  type={type} at {FormatPoint(args.Location)} touches={args.NumberOfTouches}",
+            TouchActionResult.Tapped                                 => $"Tap #{++_tapCount} at {FormatPoint(args.Location)}",
+            TouchActionResult.LongPressing                           => $"Long press at {FormatPoint(args.Location)}",
             TouchActionResult.Panning when args.Manipulation != null => $"Pinch  scale={args.Manipulation.Scale:F2}",
-            TouchActionResult.Panning                                => $"Pan  Δ({args.Distance?.Delta.X:F0}, {args.Distance?.Delta.Y:F0})",
-            TouchActionResult.Wheel                                  => $"Wheel  Δ={args.Wheel?.Delta:F1}",
+            TouchActionResult.Panning                                => $"Pan  at {FormatPoint(args.Location)} Δ({args.Distance?.Delta.X:F0}, {args.Distance?.Delta.Y:F0})",
+            TouchActionResult.Wheel                                  => $"Wheel  at {FormatPoint(args.Location)} Δ={args.Wheel?.Delta:F1}",
             _                                                        => null
         };
+
+        if (action == TouchActionResult.Tapped)
+            _lastTapPoint = FormatPoint(args.Location);
 
         if (msg != null)
         {
@@ -93,7 +110,7 @@
             if (_log.Count > MaxLog) _log.RemoveAt(_log.Count - 1);
         }
 
-        if (!moving && type is TouchActionType.Released or TouchActionType.Cancelled)
+        if (!moving && type is TouchActionType.Released or TouchActionType.Cancelled or TouchActionType.Exited)
         {
             _dotVisible = false;
             _touchCount = 0;
@@ -106,4 +123,6 @@
     {
         await GestureEffect.DisposeAsync();
     }
+
+    private static string FormatPoint(PointF point) => $"({point.X:F1}, {point.Y:F1})";
 }

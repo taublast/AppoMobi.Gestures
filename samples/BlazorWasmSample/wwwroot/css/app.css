@@ -23,6 +23,7 @@ h1 {
     display: flex;
     gap: 24px;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 }
 
 .stat {
@@ -34,6 +35,11 @@ h1 {
     font-weight: 700;
     color: #512BD4;
     line-height: 1;
+}
+
+.stat-value-compact {
+    font-size: 1rem;
+    padding-top: 0.5rem;
 }
 
 .stat-label {

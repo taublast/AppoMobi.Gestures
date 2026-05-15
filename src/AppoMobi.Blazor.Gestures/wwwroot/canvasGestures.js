@@ -21,6 +21,10 @@ function detachInternal(element) {
         element.removeEventListener(name, handler);
     }
 
+    for (const [name, handler] of Object.entries(state.documentHandlers ?? {})) {
+        document.removeEventListener(name, handler, true);
+    }
+
     delete element.__drawnUiGestures;
 }
 
@@ -31,8 +35,12 @@ export function attachCanvasGestures(element, dotNetRef, enabled) {
         return;
     }
 
-    const pointerHandler = (type) => (event) => {
+    const activeDirectPointers = new Set();
+
+    const invokePointer = (type, event) => {
         const offset = getOffset(element, event);
+        const isDirectTouchPointer = event.pointerType === 'touch' || event.pointerType === 'pen';
+
         try {
             const policy = dotNetRef.invokeMethod('OnCanvasPointer', {
                 type,
@@ -50,14 +58,22 @@ export function attachCanvasGestures(element, dotNetRef, enabled) {
                 event.preventDefault();
             }
 
-            if ((policy & POLICY_CAPTURE_POINTER) !== 0 && typeof element.setPointerCapture === 'function') {
+            if (type === 'pointerdown' && isDirectTouchPointer) {
+                activeDirectPointers.add(event.pointerId);
+            }
+
+            if (((policy & POLICY_CAPTURE_POINTER) !== 0 || (type === 'pointerdown' && isDirectTouchPointer)) && typeof element.setPointerCapture === 'function') {
                 try {
                     element.setPointerCapture(event.pointerId);
                 } catch {
                 }
             }
 
-            if ((policy & POLICY_RELEASE_POINTER) !== 0 && typeof element.releasePointerCapture === 'function') {
+            if (type === 'pointerup' || type === 'pointercancel' || type === 'pointerleave') {
+                activeDirectPointers.delete(event.pointerId);
+            }
+
+            if (((policy & POLICY_RELEASE_POINTER) !== 0 || ((type === 'pointerup' || type === 'pointercancel' || type === 'pointerleave') && isDirectTouchPointer)) && typeof element.releasePointerCapture === 'function') {
                 try {
                     if (element.hasPointerCapture?.(event.pointerId)) {
                         element.releasePointerCapture(event.pointerId);
@@ -68,6 +84,28 @@ export function attachCanvasGestures(element, dotNetRef, enabled) {
         } catch (error) {
             console.error('[canvasGestures] pointer failed', type, error?.message ?? error);
         }
+    };
+
+    const pointerHandler = (type) => (event) => invokePointer(type, event);
+
+    const documentPointerHandler = (type) => (event) => {
+        if (!activeDirectPointers.has(event.pointerId)) {
+            return;
+        }
+
+        if (event.target === element || element.contains(event.target)) {
+            return;
+        }
+
+        invokePointer(type, event);
+    };
+
+    const lostPointerCaptureHandler = (event) => {
+        if (!activeDirectPointers.has(event.pointerId)) {
+            return;
+        }
+
+        invokePointer('pointercancel', event);
     };
 
     const wheelHandler = (event) => {
@@ -94,14 +132,25 @@ export function attachCanvasGestures(element, dotNetRef, enabled) {
         pointerup: pointerHandler('pointerup'),
         pointercancel: pointerHandler('pointercancel'),
         pointerleave: pointerHandler('pointerleave'),
+        lostpointercapture: lostPointerCaptureHandler,
         wheel: wheelHandler
+    };
+
+    const documentHandlers = {
+        pointermove: documentPointerHandler('pointermove'),
+        pointerup: documentPointerHandler('pointerup'),
+        pointercancel: documentPointerHandler('pointercancel')
     };
 
     for (const [name, handler] of Object.entries(handlers)) {
         element.addEventListener(name, handler, { passive: false });
     }
 
-    element.__drawnUiGestures = { handlers };
+    for (const [name, handler] of Object.entries(documentHandlers)) {
+        document.addEventListener(name, handler, { passive: false, capture: true });
+    }
+
+    element.__drawnUiGestures = { handlers, documentHandlers };
 }
 
 export function detachCanvasGestures(element) {
