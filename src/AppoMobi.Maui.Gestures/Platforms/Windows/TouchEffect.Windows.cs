@@ -366,7 +366,7 @@ namespace AppoMobi.Gestures
                 var args = new TouchActionEventArgs(
                     pointer.Pointer.PointerId,
                     touchActionType,
-                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null);
+                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null, TouchEffect.Density);
 
                 args.IsInsideView = _pressed;
 
@@ -401,7 +401,7 @@ namespace AppoMobi.Gestures
                 var args = new TouchActionEventArgs(
                     pointer.Pointer.PointerId,
                     TouchActionType.Pointer,
-                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null);
+                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null, TouchEffect.Density);
 
                 args.IsInsideView = true; // Always inside when hovering
                 args.NumberOfTouches = 0; // No touches, just pointer
@@ -542,7 +542,7 @@ namespace AppoMobi.Gestures
                 var args = new TouchActionEventArgs(
                     pointer.Pointer.PointerId,
                     touchActionType,
-                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null);
+                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null, TouchEffect.Density);
 
                 args.IsInsideView = _pressed;
                 args.Wheel = Wheel;
@@ -586,7 +586,7 @@ namespace AppoMobi.Gestures
                 var args = new TouchActionEventArgs(
                     pointer.Pointer.PointerId,
                     touchActionType,
-                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null);
+                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null, TouchEffect.Density);
 
                 args.IsInsideView = _pressed;
                 args.Wheel = Wheel;
@@ -624,7 +624,7 @@ namespace AppoMobi.Gestures
                 var args = new TouchActionEventArgs(
                     pointer.Pointer.PointerId,
                     TouchActionType.Pointer,
-                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null);
+                    new PointF((float)(windowsPoint.X * TouchEffect.Density), (float)(windowsPoint.Y * TouchEffect.Density)), null, TouchEffect.Density);
 
                 args.IsInsideView = true; // Always inside when hovering
                 args.NumberOfTouches = 0; // No touches, just pointer

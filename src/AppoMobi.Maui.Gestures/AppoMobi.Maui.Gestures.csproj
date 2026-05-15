@@ -1,5 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\NuGet.props" />
+
 	<PropertyGroup>
         <TargetFrameworks>
             net9.0;
@@ -29,21 +31,10 @@
 
   <PropertyGroup>
     <!--<PackageReleaseNotes>Under construction</PackageReleaseNotes>-->
-    <Version>2.1.1</Version>
     <Title>AppoMobi.Maui.Gestures</Title>
     <Description>Gestures effect and helpers for .NET MAUI</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>maui gestures</PackageTags>
-    <Authors>Nick Kovalsky aka AppoMobi</Authors>
-    <Copyright>(c) AppoMobi, 2022 - present day</Copyright>
-    <PackageIcon>icon128.png</PackageIcon>
-    <PackageProjectUrl>https://github.com/taublast/AppoMobi.Maui.Gestures</PackageProjectUrl>
+    <PackageTags>maui blazor gestures</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/taublast/AppoMobi.Maui.Gestures</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <IncludeSymbols>true</IncludeSymbols>
-    <Packable>true</Packable>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <ItemGroup>

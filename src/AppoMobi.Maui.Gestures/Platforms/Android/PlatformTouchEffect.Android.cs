@@ -75,7 +75,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, actionType, pointerLocation, null);
+                var args = new TouchActionEventArgs(id, actionType, pointerLocation, null, TouchEffect.Density);
 
                 args.Wheel = Wheel;
                 args.NumberOfTouches = CountFingers;
@@ -96,7 +96,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, actionType, pointerLocation, null);
+                var args = new TouchActionEventArgs(id, actionType, pointerLocation, null, TouchEffect.Density);
                 args.Wheel = Wheel;
                 args.NumberOfTouches = CountFingers;
                 args.IsInsideView = isInsideView;
@@ -126,7 +126,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, TouchActionType.Pointer, pointerLocation, null);
+                var args = new TouchActionEventArgs(id, TouchActionType.Pointer, pointerLocation, null, TouchEffect.Density);
                 args.Wheel = Wheel;
                 args.NumberOfTouches = CountFingers;
                 args.IsInsideView = isInsideView;
@@ -154,7 +154,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, TouchActionType.Pointer, pointerLocation, null);
+                var args = new TouchActionEventArgs(id, TouchActionType.Pointer, pointerLocation, null, TouchEffect.Density);
                 args.NumberOfTouches = CountFingers;
                 args.IsInsideView = true;
                 args.Distance.Delta = scrollDelta;

@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+	<Import Project="..\NuGet.props" />
+
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
@@ -9,20 +11,9 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-        <Version>2.1.1</Version>
         <Title>AppoMobi.Gestures</Title>
 		<Description>Framework-independent gesture contracts: IGestureListener, touch and pointer data models</Description>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>gestures maui blazor uno avalonia</PackageTags>
-		<Authors>Nick Kovalsky aka AppoMobi</Authors>
-		<Copyright>(c) AppoMobi, 2022 - present day</Copyright>
-		<PackageIcon>icon128.png</PackageIcon>
-		<PackageProjectUrl>https://github.com/taublast/AppoMobi.Maui.Gestures</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/taublast/AppoMobi.Maui.Gestures</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<IncludeSymbols>true</IncludeSymbols>
-		<Packable>true</Packable>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -15,7 +15,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, actionType, point, null);
+                var args = new TouchActionEventArgs(id, actionType, point, null, TouchEffect.Density);
                 args.Wheel = Wheel;
                 args.NumberOfTouches = CountFingers;
                 args.IsInsideView = isInsideView;
@@ -55,7 +55,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, actionType, point, null);
+                var args = new TouchActionEventArgs(id, actionType, point, null, TouchEffect.Density);
                 args.Wheel = Wheel;
                 args.NumberOfTouches = CountFingers;
                 args.IsInsideView = isInsideView;
@@ -84,7 +84,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, actionType, point, null);
+                var args = new TouchActionEventArgs(id, actionType, point, null, TouchEffect.Density);
                 args.Wheel = Wheel;
                 args.NumberOfTouches = CountFingers;
                 args.IsInsideView = isInsideView;
@@ -117,7 +117,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, TouchActionType.Pointer, point, null);
+                var args = new TouchActionEventArgs(id, TouchActionType.Pointer, point, null, TouchEffect.Density);
                 args.Wheel = Wheel;
                 args.NumberOfTouches = 0; // No touches, just pointer
                 args.IsInsideView = true; // Always inside when hovering
@@ -145,7 +145,7 @@ namespace AppoMobi.Gestures
         {
             try
             {
-                var args = new TouchActionEventArgs(id, TouchActionType.Pointer, point, null);
+                var args = new TouchActionEventArgs(id, TouchActionType.Pointer, point, null, TouchEffect.Density);
                 args.IsInsideView = true;
                 args.NumberOfTouches = CountFingers;
                 args.Distance.Delta = scrollDelta;

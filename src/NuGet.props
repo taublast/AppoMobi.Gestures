@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <Version>3.10.1</Version>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Nick Kovalsky aka AppoMobi</Authors>
+    <Copyright>(c) AppoMobi, 2022 - present day</Copyright>
+    <PackageIcon>icon128.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/taublast/AppoMobi.Gestures</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/taublast/AppoMobi.Gestures</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <Packable>true</Packable>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+</Project>

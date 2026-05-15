@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
+	<Import Project="..\NuGet.props" />
+
 	<PropertyGroup>
 		<TargetFrameworks>net9.0;net10.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
@@ -9,20 +11,9 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Version>2.1.2-pre3</Version>
         <Title>AppoMobi.Blazor.Gestures</Title>
-		<Description>Blazor implementation of AppoMobi.Gestures — pointer, touch and wheel gesture handling via JS interop</Description>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<Description>Blazor implementation of AppoMobi.Gestures - pointer, touch and wheel gesture handling via JS interop</Description>
 		<PackageTags>blazor gestures touch pointer wheel</PackageTags>
-		<Authors>Nick Kovalsky aka AppoMobi</Authors>
-		<Copyright>(c) AppoMobi, 2022 - present day</Copyright>
-		<PackageIcon>icon128.png</PackageIcon>
-		<PackageProjectUrl>https://github.com/taublast/AppoMobi.Maui.Gestures</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/taublast/AppoMobi.Maui.Gestures</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<IncludeSymbols>true</IncludeSymbols>
-		<Packable>true</Packable>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">

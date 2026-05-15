@@ -2,8 +2,6 @@
 
 Cross-framework gesture recognition ecosystem for .NET. One interface (`IGestureListener`), shared data models, multiple platform implementations.
 
-> **Repo rename incoming** — this repo will become `AppoMobi.Gestures` to reflect the broader scope.
-
 Used by [DrawnUI](https://github.com/taublast/DrawnUi).
 
 ---
@@ -14,7 +12,7 @@ Used by [DrawnUI](https://github.com/taublast/DrawnUi).
 |---------|--------|-------------|
 | **AppoMobi.Gestures** | netstandard2.0 | Core contracts: `IGestureListener`, all event/data types. Zero dependencies. |
 | **AppoMobi.Maui.Gestures** | net9.0 / net10 multi-platform | .NET MAUI implementation via `RoutingEffect`. |
-| **AppoMobi.Blazor.Gestures** | net9.0 / net10.0 | Blazor implementation via JS pointer/wheel interop. |
+| **AppoMobi.Blazor.Gestures** | net9.0 / net10.0 blazor web | Blazor implementation via JS pointer/wheel interop. |
 
 ```bash
 # MAUI
@@ -22,9 +20,6 @@ dotnet add package AppoMobi.Maui.Gestures
 
 # Blazor
 dotnet add package AppoMobi.Blazor.Gestures
-
-# Shared contracts only (for library authors building their own platform impl)
-dotnet add package AppoMobi.Gestures
 ```
 
 > **v2 migration**: shared types (`IGestureListener`, `TouchActionEventArgs`, enums…) moved from `AppoMobi.Maui.Gestures` namespace to `AppoMobi.Gestures`. Add `using AppoMobi.Gestures;` to files that reference them.
@@ -152,10 +147,10 @@ No JS imports needed — the package serves `canvasGestures.js` automatically fr
 
 ### Usage
 
-Inject `BlazorGestureEffect`, attach it to an `ElementReference` after render, pass your `IGestureListener`:
+Inject `TouchEffect`, attach it to an `ElementReference` after render, pass your `IGestureListener`:
 
 ```razor
-@inject BlazorGestureEffect Gestures
+@inject TouchEffect Gestures
 @implements IAsyncDisposable
 @using AppoMobi.Gestures
 
@@ -223,8 +218,10 @@ public class MyGestureListener : IGestureListener
 ```csharp
 // Per-instance tuning (before AttachAsync)
 Gestures.LongPressTimeMs = 1000;
-Gestures.Density = 1f;          // CSS pixels = points on web; set to devicePixelRatio for physical-pixel canvases
 Gestures.Draggable = true;      // Don't cancel Moved when pointer leaves element bounds
+
+// Static scaling default for Blazor events
+TouchEffect.Density = 1f;       // CSS pixels = points on web; set to devicePixelRatio for physical-pixel canvases
 ```
 
 ### Pointer and Wheel Data
@@ -256,6 +253,7 @@ if (args.Wheel != null)
 | `Default` | Normal behavior |
 | `Lock` | Blocks all parent input — use for canvases, drawing surfaces |
 | `Manual` | Dynamic control via `WIllLock` at runtime — use for carousels inside ScrollView |
+| `SoftLock` | Shares gestures with parent native scrolling surfaces until your control clearly takes over |
 | `Disabled` | Same as `InputTransparent = true` |
 
 ### Manual Mode Example
@@ -316,7 +314,7 @@ public class MyCarousel : ContentView, IGestureListener
 
 ## Coordinate Scaling
 
-For cases when you app renders with a scale different from the native area gestures were attached to (Blazor etc), the following could help.
+For cases when your app renders with a scale different from the native area gestures were attached to (Blazor etc), the following could help.
 
 `TouchActionEventArgs.Scale` stores the source scale used when the event was produced.
 If your rendering surface uses a different scale, call `args.Rescale(renderingScale)` inside `OnGestureEvent` and use the returned event for hit testing or game logic.
@@ -371,9 +369,9 @@ TouchEffect.LongPressTimeMsDefault = 1500;          // ms
 TouchEffect.TappedCancelMoveThresholdPoints = 16f;  // points; movement above this cancels tap
 TouchEffect.LogEnabled = true;
 
-// Blazor — per-instance (or change the static default before creating instances)
-BlazorGestureEffect.LongPressTimeMsDefault = 1500;
-BlazorGestureEffect.TappedCancelMoveThresholdPoints = 16f;
+// Blazor — static defaults before creating instances
+TouchEffect.LongPressTimeMsDefault = 1500;
+TouchEffect.TappedCancelMoveThresholdPoints = 16f;
 ```
 
 ---

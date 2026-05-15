@@ -36,8 +36,4 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\..\src\AppoMobi.Maui.Gestures\AppoMobi.Maui.Gestures.csproj" />
-	</ItemGroup>
-
 </Project>

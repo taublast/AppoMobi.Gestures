@@ -8,18 +8,23 @@ on:
 
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 9.0.x
-        
-    - name: Install MAUI workload
-      run: dotnet workload install maui
-      
-    - name: Build
-      run: dotnet build src\AppoMobi.Maui.Gestures.csproj -c Release -f:net9.0-windows10.0.19041.0
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            global.json
+            src/**/*.csproj
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui --ignore-failed-sources
+
+      - name: Build Windows target
+        run: dotnet build src\AppoMobi.Maui.Gestures\AppoMobi.Maui.Gestures.csproj -c Release -f net10.0-windows10.0.19041.0 --nologo
