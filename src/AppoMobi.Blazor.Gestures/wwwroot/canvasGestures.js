@@ -11,6 +11,14 @@ const POLICY_PREVENT_DEFAULT = 1;
 const POLICY_CAPTURE_POINTER = 1 << 1;
 const POLICY_RELEASE_POINTER = 1 << 2;
 
+function suppressBrowserDefault(event) {
+    if (event.cancelable) {
+        event.preventDefault();
+    }
+
+    event.stopPropagation();
+}
+
 function detachInternal(element) {
     const state = element.__drawnUiGestures;
     if (!state) {
@@ -55,7 +63,7 @@ export function attachCanvasGestures(element, dotNetRef, enabled) {
             });
 
             if ((policy & POLICY_PREVENT_DEFAULT) !== 0) {
-                event.preventDefault();
+                suppressBrowserDefault(event);
             }
 
             if (type === 'pointerdown' && isDirectTouchPointer) {
@@ -119,11 +127,15 @@ export function attachCanvasGestures(element, dotNetRef, enabled) {
             });
 
             if ((policy & POLICY_PREVENT_DEFAULT) !== 0) {
-                event.preventDefault();
+                suppressBrowserDefault(event);
             }
         } catch (error) {
             console.error('[canvasGestures] wheel failed', error?.message ?? error);
         }
+    };
+
+    const suppressBrowserFallbackHandler = (event) => {
+        suppressBrowserDefault(event);
     };
 
     const handlers = {
@@ -133,7 +145,10 @@ export function attachCanvasGestures(element, dotNetRef, enabled) {
         pointercancel: pointerHandler('pointercancel'),
         pointerleave: pointerHandler('pointerleave'),
         lostpointercapture: lostPointerCaptureHandler,
-        wheel: wheelHandler
+        wheel: wheelHandler,
+        contextmenu: suppressBrowserFallbackHandler,
+        selectstart: suppressBrowserFallbackHandler,
+        dragstart: suppressBrowserFallbackHandler
     };
 
     const documentHandlers = {
