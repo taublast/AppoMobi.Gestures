@@ -167,6 +167,7 @@ ClientBin/
 *.dbproj.schemaview
 *.pfx
 *.publishsettings
+*.lscache
 node_modules/
 .DS_Store
 *.bak
