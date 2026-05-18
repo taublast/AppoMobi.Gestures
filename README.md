@@ -421,6 +421,7 @@ args.Manipulation = manipulation;
 
 ## What's New
 
+* **3.10.2** —  Invert Blazor Wheel direction to match other platforms.
 * **3.10.1** — `.NET 10` support added for both `AppoMobi.Maui.Gestures` and `AppoMobi.Blazor.Gestures`, while keeping `.NET 9` targets in place. Adds `TouchActionEventArgs.Scale` for source-coordinate scaling and `TouchActionEventArgs.Rescale(float)` for remapping gesture data to the consumer rendering scale.
 * **1.11.9.2** — Android: built-in programmatic tap for sensitive screens (Galaxy S sends microscopic pans instead of tap). `TappedCancelMoveThresholdPoints` defaults to 16 (was 5).
 
