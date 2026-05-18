@@ -159,7 +159,7 @@ public class TouchEffect : IAsyncDisposable
         var args = new TouchActionEventArgs(0, TouchActionType.Wheel, location, null, Density)
         {
             IsInsideView = true,
-            Wheel = new WheelEventArgs { Delta = w.DeltaY, Center = location }
+            Wheel = new WheelEventArgs { Delta = -w.DeltaY, Center = location }
         };
         OnTouchAction(args);
 

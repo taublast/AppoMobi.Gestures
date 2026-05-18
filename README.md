@@ -67,6 +67,8 @@ public interface IGestureListener
 
 ## .NET MAUI
 
+Gestures are handled by a MAUI effect. Use attached properties for command-driven scenarios, or force-attach the effect when your control implements `IGestureListener` directly.
+
 ### Setup
 
 ```csharp
@@ -74,7 +76,7 @@ public interface IGestureListener
 builder.UseGestures();
 ```
 
-### XAML
+### Basic Usage in XAML
 
 ```xml
 <ContentPage xmlns:touch="clr-namespace:AppoMobi.Gestures;assembly=AppoMobi.Maui.Gestures">
@@ -91,7 +93,7 @@ builder.UseGestures();
 </ContentPage>
 ```
 
-### Code-Behind
+### Basic Usage in Code-Behind
 
 ```csharp
 TouchEffect.SetCommandTapped(myView, TapCommand);
@@ -99,6 +101,21 @@ TouchEffect.SetCommandTappedParameter(myView, itemData);
 TouchEffect.SetCommandLongPressing(myView, LongPressCommand);
 TouchEffect.SetForceAttach(myView, true);
 TouchEffect.SetShareTouch(myView, TouchHandlingStyle.Lock);
+```
+
+### Enhanced Usage for Custom Controls
+
+Attach the effect without command bindings when your control handles gestures itself:
+
+```xml
+<draw:Canvas
+    touch:TouchEffect.ForceAttach="True" />
+```
+
+Or in code-behind:
+
+```csharp
+TouchEffect.SetForceAttach(myView, true);
 ```
 
 ### IGestureListener in MAUI
@@ -250,7 +267,7 @@ if (args.Pointer != null)
 
 if (args.Wheel != null)
 {
-    var delta = args.Wheel.Delta;   // Positive = scroll down
+    var delta = args.Wheel.Delta;   // Positive = wheel up / away from the user
     var center = args.Wheel.Center; // Location of wheel event
 }
 ```
