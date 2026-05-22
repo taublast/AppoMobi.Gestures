@@ -19,9 +19,8 @@ public class TouchEffect : IAsyncDisposable
     public int LongPressTimeMs { get; set; } = LongPressTimeMsDefault;
 
     /// <summary>
-    /// CSS pixels per logical point.
-    /// Web JS already gives CSS pixels so this defaults to 1.
-    /// Set to window.devicePixelRatio when working with a canvas scaled to physical pixels.
+    /// Current browser device pixel ratio used by the Blazor gestures implementation.
+    /// This is updated from JS when the browser pixel scale changes.
     /// </summary>
     public static float Density { get; set; } = 1f;
 
@@ -106,6 +105,24 @@ public class TouchEffect : IAsyncDisposable
     }
 
     [JSInvokable]
+    public void OnDensityChanged(double density)
+    {
+        if (!double.IsFinite(density) || density <= 0)
+        {
+            density = 1;
+        }
+
+        Density = (float)density;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static float GetEventScale()
+    {
+        var density = Density;
+        return float.IsFinite(density) && density > 0 ? density : 1f;
+    }
+
+    [JSInvokable]
     public int OnCanvasPointer(BlazorPointerArgs p)
     {
         var type = p.Type switch
@@ -123,7 +140,10 @@ public class TouchEffect : IAsyncDisposable
         if (type == TouchActionType.Pressed)
             _activePointers.Add(p.PointerId);
 
-        var args = new TouchActionEventArgs(p.PointerId, type, new PointF(p.OffsetX, p.OffsetY), null, Density)
+        var scale = GetEventScale();
+        var location = new PointF(p.OffsetX * scale, p.OffsetY * scale);
+
+        var args = new TouchActionEventArgs(p.PointerId, type, location, null, scale)
         {
             IsInsideView = p.IsInsideView,
             NumberOfTouches = _activePointers.Count,
@@ -155,8 +175,9 @@ public class TouchEffect : IAsyncDisposable
     [JSInvokable]
     public int OnCanvasWheel(BlazorWheelArgs w)
     {
-        var location = new PointF(w.OffsetX, w.OffsetY);
-        var args = new TouchActionEventArgs(0, TouchActionType.Wheel, location, null, Density)
+        var scale = GetEventScale();
+        var location = new PointF(w.OffsetX * scale, w.OffsetY * scale);
+        var args = new TouchActionEventArgs(0, TouchActionType.Wheel, location, null, scale)
         {
             IsInsideView = true,
             Wheel = new WheelEventArgs { Delta = -w.DeltaY, Center = location }

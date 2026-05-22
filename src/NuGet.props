@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Version>3.10.2</Version>
+    <Version>3.10.4</Version>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Nick Kovalsky aka AppoMobi</Authors>
     <Copyright>(c) AppoMobi, 2022 - present day</Copyright>
