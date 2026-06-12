@@ -203,7 +203,7 @@ function detachInternal(element) {
     delete element.__drawnUiGestures;
 }
 
-export async function attachCanvasGestures(element, dotNetRef, enabled) {
+export async function attachCanvasGestures(element, dotNetRef, enabled, lockTouches) {
     detachInternal(element);
 
     if (!enabled) {
@@ -319,6 +319,13 @@ export async function attachCanvasGestures(element, dotNetRef, enabled) {
         selectstart: suppressBrowserFallbackHandler,
         dragstart: suppressBrowserFallbackHandler
     };
+
+    if (lockTouches) {
+        // In-app browsers (iOS WKWebView in Telegram etc.) intercept swipes at the native
+        // touch layer before pointer events can respond, dismissing the browser window.
+        // touchmove only — touchstart.preventDefault() can kill pointer events on Windows touch.
+        handlers.touchmove = (event) => { if (event.cancelable) event.preventDefault(); };
+    }
 
     const documentHandlers = {
         pointermove: documentPointerHandler('pointermove'),

@@ -76,9 +76,13 @@ public class TouchEffect : IAsyncDisposable
         _element = element;
         _listener = listener;
         _dotNetRef = DotNetObjectReference.Create(this);
-        _module ??= await _js.InvokeAsync<IJSObjectReference>(
-            "import", "./_content/AppoMobi.Blazor.Gestures/canvasGestures.js");
-        await _module.InvokeVoidAsync("attachCanvasGestures", element, _dotNetRef, true);
+        if (_module == null)
+        {
+            var version = typeof(TouchEffect).Assembly.GetName().Version?.ToString() ?? "0";
+            _module = await _js.InvokeAsync<IJSObjectReference>(
+                "import", $"./_content/AppoMobi.Blazor.Gestures/canvasGestures.js?v={version}");
+        }
+        await _module.InvokeVoidAsync("attachCanvasGestures", element, _dotNetRef, true, TouchMode == TouchHandlingStyle.Lock);
     }
 
     public async Task DetachAsync()
