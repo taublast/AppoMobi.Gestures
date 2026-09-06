@@ -176,6 +176,43 @@ public class TouchEffect : IAsyncDisposable
         return GetInteropPolicy(type);
     }
 
+    /// <summary>
+    /// Browser contextmenu event (right click, long press on touch, keyboard Menu key): delivered to the listener as
+    /// <see cref="TouchActionResult.ContextMenu"/>. Returns the prevent-default policy when the listener set
+    /// <see cref="TouchActionEventArgs.Handled"/>; otherwise the browser menu shows.
+    /// </summary>
+    [JSInvokable]
+    public int OnCanvasContextMenu(BlazorContextMenuArgs c)
+    {
+        var scale = GetEventScale();
+        var location = new PointF(c.OffsetX * scale, c.OffsetY * scale);
+        var args = new TouchActionEventArgs(0, TouchActionType.ContextMenu, location, null, scale)
+        {
+            IsInsideView = true,
+            StartingLocation = location,
+            Pointer = new PointerData
+            {
+                Button = MouseButton.Right,
+                ButtonNumber = 2,
+                State = MouseButtonState.Released,
+                DeviceType = c.PointerType switch
+                {
+                    "touch" => PointerDeviceType.Touch,
+                    "pen" => PointerDeviceType.Pen,
+                    _ => PointerDeviceType.Mouse
+                },
+            }
+        };
+
+        var listener = _listener;
+        if (listener is { InputTransparent: true })
+            listener = null;
+
+        listener?.OnGestureEvent(TouchActionType.ContextMenu, args, TouchActionResult.ContextMenu);
+
+        return args.Handled ? PolicyPreventDefault : 0;
+    }
+
     [JSInvokable]
     public int OnCanvasWheel(BlazorWheelArgs w)
     {
@@ -210,7 +247,11 @@ public class TouchEffect : IAsyncDisposable
             _maybeTapped = false;
             _isLongPressing = false;
 
-            _maybeTapped = true;
+            // only the primary mouse button (or a finger / pen) can end as a Tapped; right / middle clicks still deliver
+            // Down / Up with their PointerData for code that wants them
+            _maybeTapped = args.Pointer == null
+                           || args.Pointer.DeviceType != PointerDeviceType.Mouse
+                           || args.Pointer.Button == MouseButton.Left;
             _manipulationTracker.Restart(args.Id, args.Location);
             ScheduleLongPress(args);
 

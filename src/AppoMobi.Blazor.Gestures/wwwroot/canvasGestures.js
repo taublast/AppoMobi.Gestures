@@ -307,6 +307,25 @@ export async function attachCanvasGestures(element, dotNetRef, enabled, lockTouc
         suppressBrowserDefault(event);
     };
 
+    // right click / long press / Menu key: .NET decides (TouchActionResult.ContextMenu, args.Handled) whether the
+    // browser menu is suppressed; the sync call exists on WebAssembly only — on the server the menu stays suppressed
+    const contextMenuHandler = (event) => {
+        const offset = getOffset(element, event);
+        try {
+            const policy = dotNetRef.invokeMethod('OnCanvasContextMenu', {
+                offsetX: offset.x,
+                offsetY: offset.y,
+                pointerType: event.pointerType ?? 'mouse'
+            });
+            if ((policy & POLICY_PREVENT_DEFAULT) !== 0) {
+                suppressBrowserDefault(event);
+            }
+        } catch {
+            suppressBrowserDefault(event);
+            dotNetRef.invokeMethodAsync?.('OnCanvasContextMenu', { offsetX: offset.x, offsetY: offset.y, pointerType: event.pointerType ?? 'mouse' }).catch(() => { });
+        }
+    };
+
     const handlers = {
         pointerdown: pointerHandler('pointerdown'),
         pointermove: pointerHandler('pointermove'),
@@ -315,7 +334,7 @@ export async function attachCanvasGestures(element, dotNetRef, enabled, lockTouc
         pointerleave: pointerHandler('pointerleave'),
         lostpointercapture: lostPointerCaptureHandler,
         wheel: wheelHandler,
-        contextmenu: suppressBrowserFallbackHandler,
+        contextmenu: contextMenuHandler,
         selectstart: suppressBrowserFallbackHandler,
         dragstart: suppressBrowserFallbackHandler
     };
