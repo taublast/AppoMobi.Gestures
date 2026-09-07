@@ -60,6 +60,7 @@ public interface IGestureListener
 | `Panning` | Moving with contact |
 | `Wheel` | Mouse wheel / trackpad scroll |
 | `Pointer` | Mouse/pen hover (no button held) |
+| `ContextMenu` | Context-menu request: right click, long press on touch, keyboard Menu key (Blazor, 3.11.0). Set `args.Handled = true` to suppress the browser menu |
 
 `TouchActionEventArgs` carries everything: pixel location, source coordinate scale, velocity, distance totals, multi-touch manipulation (scale/rotation), mouse button state, pointer device type.
 
@@ -272,6 +273,36 @@ if (args.Wheel != null)
 }
 ```
 
+### Context Menu (Blazor, 3.11.0)
+
+A right click, a long press on touch (browsers raise `contextmenu` for it) or the keyboard Menu key over the element
+reaches the listener as its own gesture, outside the press / release sequence:
+
+```csharp
+public void OnGestureEvent(TouchActionType type, TouchActionEventArgs args, TouchActionResult action)
+{
+    if (action == TouchActionResult.ContextMenu)
+    {
+        var source = args.Pointer?.DeviceType;   // Mouse = right click, Touch / Pen = long press
+        ShowMyMenu(args.Location);               // pixels, same scale as every other event
+        args.Handled = true;                     // suppress the browser's own context menu
+    }
+}
+```
+
+* `args.Handled` decides what the browser does: `true` returns the prevent-default policy to JS and the browser menu
+  stays away; `false` (the default) lets the browser show its menu as usual. Before 3.11.0 the JS side always
+  suppressed `contextmenu`; now the listener decides.
+* `args.Pointer.Button` is `Right`, `args.Pointer.State` is `Released`, `args.StartingLocation == args.Location`.
+* The decision needs the synchronous JS → .NET call, which exists on Blazor WebAssembly. On Blazor Server the event is
+  still delivered (asynchronously) and the browser menu is suppressed, as before.
+* Right and middle mouse buttons never end as `Tapped` (3.11.0): they still deliver `Down` / `Up` with their
+  `PointerData` for code that wants them, only the primary button (or a finger / pen) taps.
+
+The JS → .NET DTO is `BlazorContextMenuArgs` (`OffsetX`, `OffsetY` in CSS pixels relative to the element,
+`PointerType` `"mouse"` / `"touch"` / `"pen"`), consumed by `TouchEffect.OnCanvasContextMenu`; you only meet it when
+building your own interop.
+
 ---
 
 ## Touch Handling Modes
@@ -372,6 +403,7 @@ args.NumberOfTouches   // int   — active touch/pointer count
 args.IsInContact       // bool  — gesture started inside the view
 args.IsInsideView      // bool  — current hit is inside view bounds
 args.PreventDefault    // bool  — set true in LongPressing to suppress Tapped
+args.Handled           // bool  — set true in ContextMenu to suppress the browser menu (Blazor)
 
 // Distance info (all in pixels)
 args.Distance.Delta        // PointF — movement since last event
@@ -421,6 +453,7 @@ args.Manipulation = manipulation;
 
 ## What's New
 
+* **3.11.0** — `TouchActionType.ContextMenu` / `TouchActionResult.ContextMenu`: right click, long press on touch and the keyboard Menu key reach the listener as a gesture (Blazor); `args.Handled = true` suppresses the browser menu, otherwise it shows (was always suppressed). Right / middle mouse buttons no longer produce `Tapped`. New `BlazorContextMenuArgs` DTO.
 * **3.10.6** —  append version to Blazor `js` file to avoid caching issues.
 * **3.10.5** —  Lock gestures from parent window when using `Lock` mode on Blazor.
 * **3.10.2** —  Invert Blazor Wheel direction to match other platforms.
