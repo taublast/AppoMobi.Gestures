@@ -311,18 +311,25 @@ export async function attachCanvasGestures(element, dotNetRef, enabled, lockTouc
     // browser menu is suppressed; the sync call exists on WebAssembly only — on the server the menu stays suppressed
     const contextMenuHandler = (event) => {
         const offset = getOffset(element, event);
+        const payload = {
+            type: 'contextmenu',
+            pointerId: event.pointerId ?? 0,
+            offsetX: offset.x,
+            offsetY: offset.y,
+            button: 2,
+            buttons: event.buttons ?? 0,
+            pointerType: event.pointerType ?? 'mouse',
+            pressure: 0,
+            isInsideView: offset.inside
+        };
         try {
-            const policy = dotNetRef.invokeMethod('OnCanvasContextMenu', {
-                offsetX: offset.x,
-                offsetY: offset.y,
-                pointerType: event.pointerType ?? 'mouse'
-            });
+            const policy = dotNetRef.invokeMethod('OnCanvasContextMenu', payload);
             if ((policy & POLICY_PREVENT_DEFAULT) !== 0) {
                 suppressBrowserDefault(event);
             }
         } catch {
             suppressBrowserDefault(event);
-            dotNetRef.invokeMethodAsync?.('OnCanvasContextMenu', { offsetX: offset.x, offsetY: offset.y, pointerType: event.pointerType ?? 'mouse' }).catch(() => { });
+            dotNetRef.invokeMethodAsync?.('OnCanvasContextMenu', payload).catch(() => { });
         }
     };
 

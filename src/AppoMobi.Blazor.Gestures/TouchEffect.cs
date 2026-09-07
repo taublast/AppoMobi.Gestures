@@ -182,20 +182,21 @@ public class TouchEffect : IAsyncDisposable
     /// <see cref="TouchActionEventArgs.Handled"/>; otherwise the browser menu shows.
     /// </summary>
     [JSInvokable]
-    public int OnCanvasContextMenu(BlazorContextMenuArgs c)
+    public int OnCanvasContextMenu(BlazorPointerArgs p)
     {
         var scale = GetEventScale();
-        var location = new PointF(c.OffsetX * scale, c.OffsetY * scale);
-        var args = new TouchActionEventArgs(0, TouchActionType.ContextMenu, location, null, scale)
+        var location = new PointF(p.OffsetX * scale, p.OffsetY * scale);
+        var args = new TouchActionEventArgs(p.PointerId, TouchActionType.ContextMenu, location, null, scale)
         {
-            IsInsideView = true,
+            IsInsideView = p.IsInsideView,
             StartingLocation = location,
             Pointer = new PointerData
             {
                 Button = MouseButton.Right,
                 ButtonNumber = 2,
                 State = MouseButtonState.Released,
-                DeviceType = c.PointerType switch
+                PressedButtons = (MouseButtons)p.Buttons,
+                DeviceType = p.PointerType switch
                 {
                     "touch" => PointerDeviceType.Touch,
                     "pen" => PointerDeviceType.Pen,
