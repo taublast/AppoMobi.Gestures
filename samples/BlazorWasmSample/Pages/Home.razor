@@ -30,13 +30,18 @@
         </div>
     </div>
 
+    <label class="context-menu-option">
+        <input type="checkbox" @bind="_suppressBrowserMenu" />
+        Right click / long press: handle <code>ContextMenu</code> and suppress the browser menu (<code>args.Handled = true</code>)
+    </label>
+
     <!-- touch-action:none is required on the gesture target -->
     <div class="gesture-area" @ref="_gestureArea">
         @if (!_dotVisible)
         {
             <span class="gesture-hint">
                 Touch here<br/><br/>
-                Tap · Double-Tap · Long Press<br/>
+                Tap · Double-Tap · Long Press · Right-Click<br/>
                 Pan · Pinch · Scroll Wheel
             </span>
         }
@@ -63,6 +68,7 @@
     private double _dotX, _dotY;
     private string _lastPoint = "—";
     private string _lastTapPoint = "—";
+    private bool _suppressBrowserMenu = true;
     private readonly List<string> _log = new();
     private const int MaxLog = 30;
 
@@ -96,8 +102,13 @@
             TouchActionResult.Panning when args.Manipulation != null => $"Pinch  scale={args.Manipulation.Scale:F2}",
             TouchActionResult.Panning                                => $"Pan  at {FormatPoint(args.Location)} Δ({args.Distance?.Delta.X:F0}, {args.Distance?.Delta.Y:F0})",
             TouchActionResult.Wheel                                  => $"Wheel  at {FormatPoint(args.Location)} Δ={args.Wheel?.Delta:F1}",
+            TouchActionResult.ContextMenu                            => $"Context menu  source={args.Pointer?.DeviceType} at {FormatPoint(args.Location)}  browser menu {(_suppressBrowserMenu ? "suppressed" : "shown")}",
             _                                                        => null
         };
+
+        // ContextMenu: the listener decides synchronously whether the browser shows its own menu
+        if (action == TouchActionResult.ContextMenu && _suppressBrowserMenu)
+            args.Handled = true;
 
         if (action == TouchActionResult.Tapped)
             _lastTapPoint = FormatPoint(args.Location);
