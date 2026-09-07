@@ -296,8 +296,9 @@ public void OnGestureEvent(TouchActionType type, TouchActionEventArgs args, Touc
 * `args.Pointer.Button` is `Right`, `args.Pointer.State` is `Released`, `args.StartingLocation == args.Location`.
 * The decision needs the synchronous JS → .NET call, which exists on Blazor WebAssembly. On Blazor Server the event is
   still delivered (asynchronously) and the browser menu is suppressed, as before.
-* Right and middle mouse buttons never end as `Tapped` (3.11.0): they still deliver `Down` / `Up` with their
-  `PointerData` for code that wants them, only the primary button (or a finger / pen) taps.
+* Every mouse button still goes through `Down` / `Up` / `Tapped` with its `PointerData.Button`, as before: a right
+  click is a `Tapped` with `Button == MouseButton.Right` **and** a `ContextMenu`. Filter on the button where a tap
+  must be primary-only.
 
 ---
 
@@ -449,7 +450,7 @@ args.Manipulation = manipulation;
 
 ## What's New
 
-* **3.11.0** — `TouchActionType.ContextMenu` / `TouchActionResult.ContextMenu`: right click, long press on touch and the keyboard Menu key reach the listener as a gesture (Blazor); `args.Handled = true` suppresses the browser menu, otherwise it shows (was always suppressed). Right / middle mouse buttons no longer produce `Tapped`.
+* **3.11.0** — `TouchActionType.ContextMenu` / `TouchActionResult.ContextMenu`: right click, long press on touch and the keyboard Menu key reach the listener as a gesture (Blazor); `args.Handled = true` suppresses the browser menu, otherwise it shows (was always suppressed).
 * **3.10.6** —  append version to Blazor `js` file to avoid caching issues.
 * **3.10.5** —  Lock gestures from parent window when using `Lock` mode on Blazor.
 * **3.10.2** —  Invert Blazor Wheel direction to match other platforms.

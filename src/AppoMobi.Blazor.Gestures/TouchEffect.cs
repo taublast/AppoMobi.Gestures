@@ -248,11 +248,7 @@ public class TouchEffect : IAsyncDisposable
             _maybeTapped = false;
             _isLongPressing = false;
 
-            // only the primary mouse button (or a finger / pen) can end as a Tapped; right / middle clicks still deliver
-            // Down / Up with their PointerData for code that wants them
-            _maybeTapped = args.Pointer == null
-                           || args.Pointer.DeviceType != PointerDeviceType.Mouse
-                           || args.Pointer.Button == MouseButton.Left;
+            _maybeTapped = true;
             _manipulationTracker.Restart(args.Id, args.Location);
             ScheduleLongPress(args);
 

@@ -97,7 +97,7 @@
         {
             TouchActionResult.Down                                   => $"Down  type={type} at {FormatPoint(args.Location)} touches={args.NumberOfTouches}",
             TouchActionResult.Up                                     => $"Up  type={type} at {FormatPoint(args.Location)} touches={args.NumberOfTouches}",
-            TouchActionResult.Tapped                                 => $"Tap #{++_tapCount} at {FormatPoint(args.Location)}",
+            TouchActionResult.Tapped                                 => $"Tap #{++_tapCount} at {FormatPoint(args.Location)} button={args.Pointer?.Button}",
             TouchActionResult.LongPressing                           => $"Long press at {FormatPoint(args.Location)}",
             TouchActionResult.Panning when args.Manipulation != null => $"Pinch  scale={args.Manipulation.Scale:F2}",
             TouchActionResult.Panning                                => $"Pan  at {FormatPoint(args.Location)} Δ({args.Distance?.Delta.X:F0}, {args.Distance?.Delta.Y:F0})",
