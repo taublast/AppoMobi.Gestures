@@ -60,7 +60,7 @@ public interface IGestureListener
 | `Panning` | Moving with contact |
 | `Wheel` | Mouse wheel / trackpad scroll |
 | `Pointer` | Mouse/pen hover (no button held) |
-| `ContextMenu` | Context-menu request: right click, long press on touch, keyboard Menu key (Blazor, 3.11.0). Set `args.Handled = true` to suppress the browser menu |
+| `ContextMenu` | Context-menu request: right click, long press on touch, keyboard Menu key (Blazor, 3.11.1). Set `args.Handled = true` to suppress the browser menu |
 
 `TouchActionEventArgs` carries everything: pixel location, source coordinate scale, velocity, distance totals, multi-touch manipulation (scale/rotation), mouse button state, pointer device type.
 
@@ -273,7 +273,7 @@ if (args.Wheel != null)
 }
 ```
 
-### Context Menu (Blazor, 3.11.0)
+### Context Menu (Blazor, 3.11.1)
 
 A right click, a long press on touch (browsers raise `contextmenu` for it) or the keyboard Menu key over the element
 reaches the listener as its own gesture, outside the press / release sequence:
@@ -291,7 +291,7 @@ public void OnGestureEvent(TouchActionType type, TouchActionEventArgs args, Touc
 ```
 
 * `args.Handled` decides what the browser does: `true` returns the prevent-default policy to JS and the browser menu
-  stays away; `false` (the default) lets the browser show its menu as usual. Before 3.11.0 the JS side always
+  stays away; `false` (the default) lets the browser show its menu as usual. Before 3.11.1 the JS side always
   suppressed `contextmenu`; now the listener decides.
 * `args.Pointer.Button` is `Right`, `args.Pointer.State` is `Released`, `args.StartingLocation == args.Location`.
 * The decision needs the synchronous JS → .NET call, which exists on Blazor WebAssembly. On Blazor Server the event is
@@ -450,7 +450,7 @@ args.Manipulation = manipulation;
 
 ## What's New
 
-* **3.11.0** — `TouchActionType.ContextMenu` / `TouchActionResult.ContextMenu`: right click, long press on touch and the keyboard Menu key reach the listener as a gesture (Blazor); `args.Handled = true` suppresses the browser menu, otherwise it shows (was always suppressed).
+* **3.11.1** — `TouchActionType.ContextMenu` / `TouchActionResult.ContextMenu`: right click, long press on touch and the keyboard Menu key reach the listener as a gesture (Blazor); `args.Handled = true` suppresses the browser menu, otherwise it shows (was always suppressed).
 * **3.10.6** —  append version to Blazor `js` file to avoid caching issues.
 * **3.10.5** —  Lock gestures from parent window when using `Lock` mode on Blazor.
 * **3.10.2** —  Invert Blazor Wheel direction to match other platforms.
