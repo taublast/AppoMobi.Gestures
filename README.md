@@ -200,7 +200,7 @@ Inject `TouchEffect`, attach it to an `ElementReference` after render, pass your
 }
 ```
 
-> **Touch and page scrolling**: the library sets the element's `touch-action` itself, overriding any inline value. With `TouchHandlingStyle.Lock` it is `none` and the element keeps every touch. In the other modes it is the axes the page (or a scrolling ancestor) can scroll, like a MAUI view inside a native `ScrollView`: a finger pan along a page axis scrolls the page and your listener gets `Cancelled`, taps and the other axis reach your listener, and a page that cannot scroll keeps every touch.
+> **Touch and page scrolling**: the library sets the element's `touch-action` itself, overriding any inline value. With `TouchHandlingStyle.Lock` it is `none` and the element keeps every touch. In the other modes it is the axes the page (or a scrolling ancestor) can scroll, like a MAUI view inside a native `ScrollView`: a finger pan along a page axis scrolls the page and your listener gets `Cancelled`, taps and the other axis reach your listener, and a page that cannot scroll keeps every touch. Inside an iframe the embedding page cannot be inspected, so it is assumed to scroll vertically: vertical pans go to it, horizontal drags and taps stay on the element.
 
 ### IGestureListener in Blazor
 
@@ -452,6 +452,7 @@ args.Manipulation = manipulation;
 
 ## What's New
 
+* **3.11.3** — Blazor: an element inside an iframe hands vertical touch pans to the embedding page. A full-viewport app in a frame has a document that cannot scroll, and a cross-origin parent cannot be inspected, so the vertical axis now always counts as scrollable there (horizontal drags and taps stay on the element). A framed app that needs its own vertical drags on touch uses `Lock`.
 * **3.11.2** — Blazor: the library now sets the element's `touch-action` itself, so a canvas embedded in a scrolling page no longer traps page scrolling. `Lock` keeps every touch (`none`). The other modes hand the page the touch pans along the axes it can scroll, like a MAUI view inside a native `ScrollView`: a finger pan along a page axis scrolls the page and the listener gets `Cancelled`, taps and the other axis still arrive, and a page that cannot scroll keeps every touch. Kept current on resize and after every touch; overrides any inline `touch-action`, so hosts no longer need to set `touch-action: none`.
 * **3.11.1** — `TouchActionType.ContextMenu` / `TouchActionResult.ContextMenu`: right click, long press on touch and the keyboard Menu key reach the listener as a gesture (Blazor); `args.Handled = true` suppresses the browser menu, otherwise it shows (was always suppressed).
 * **3.10.6** —  append version to Blazor `js` file to avoid caching issues.
