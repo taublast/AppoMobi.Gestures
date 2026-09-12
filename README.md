@@ -452,6 +452,7 @@ args.Manipulation = manipulation;
 
 ## What's New
 
+* **3.11.2** — Blazor: the library now sets the element's `touch-action` itself, so a canvas embedded in a scrolling page no longer traps page scrolling. `Lock` keeps every touch (`none`). The other modes hand the page the touch pans along the axes it can scroll, like a MAUI view inside a native `ScrollView`: a finger pan along a page axis scrolls the page and the listener gets `Cancelled`, taps and the other axis still arrive, and a page that cannot scroll keeps every touch. Kept current on resize and after every touch; overrides any inline `touch-action`, so hosts no longer need to set `touch-action: none`.
 * **3.11.1** — `TouchActionType.ContextMenu` / `TouchActionResult.ContextMenu`: right click, long press on touch and the keyboard Menu key reach the listener as a gesture (Blazor); `args.Handled = true` suppresses the browser menu, otherwise it shows (was always suppressed).
 * **3.10.6** —  append version to Blazor `js` file to avoid caching issues.
 * **3.10.5** —  Lock gestures from parent window when using `Lock` mode on Blazor.
