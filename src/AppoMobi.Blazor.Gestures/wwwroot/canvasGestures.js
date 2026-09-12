@@ -176,6 +176,39 @@ function unregisterDensityRef(dotNetRef) {
     cleanupDensityWatcherIfUnused();
 }
 
+// Gestures="Enabled" shares touch pans with the page like MAUI's Enabled inside a native scroll view: along an axis the
+// page (or a scrolling ancestor) can scroll, the browser takes the pan and cancels the pointer; taps and the other axis
+// stay on the canvas. A page that cannot scroll keeps every touch on the canvas. touch-action is read when a touch
+// starts, so it is kept current ahead of time (attach, window / html / body resize, after every touch).
+function pageScrollAxes(element) {
+    const scrolls = (v) => v === 'auto' || v === 'scroll' || v === 'overlay';
+    const clips = (v) => v === 'hidden' || v === 'clip';
+    let x = false, y = false;
+    for (let n = element.parentElement; n && n !== document.body && n !== document.documentElement; n = n.parentElement) {
+        const st = getComputedStyle(n);
+        if (!y && scrolls(st.overflowY) && n.scrollHeight > n.clientHeight + 1) y = true;
+        if (!x && scrolls(st.overflowX) && n.scrollWidth > n.clientWidth + 1) x = true;
+    }
+    const root = document.scrollingElement || document.documentElement;
+    const hs = getComputedStyle(document.documentElement), bs = getComputedStyle(document.body);
+    if (!y && !clips(hs.overflowY) && !clips(bs.overflowY) && root.scrollHeight > root.clientHeight + 1) y = true;
+    if (!x && !clips(hs.overflowX) && !clips(bs.overflowX) && root.scrollWidth > root.clientWidth + 1) x = true;
+    return x && y ? 'pan-x pan-y' : y ? 'pan-y' : x ? 'pan-x' : 'none';
+}
+
+// The canvas markup may carry its own inline touch-action (DrawnUi.Blazor); an attribute rule with !important wins and
+// survives the framework re-rendering the style attribute.
+function ensureTouchActionStyle() {
+    if (document.getElementById('appomobi-touch-action-style')) {
+        return;
+    }
+    const style = document.createElement('style');
+    style.id = 'appomobi-touch-action-style';
+    style.textContent = ['none', 'pan-x', 'pan-y', 'pan-x pan-y']
+        .map((v) => `[data-appomobi-touch="${v}"]{touch-action:${v}!important}`).join('');
+    document.head.appendChild(style);
+}
+
 function suppressBrowserDefault(event) {
     if (event.cancelable) {
         event.preventDefault();
@@ -200,6 +233,8 @@ function detachInternal(element) {
         document.removeEventListener(name, handler, true);
     }
 
+    state.cleanup?.();
+
     delete element.__drawnUiGestures;
 }
 
@@ -213,6 +248,23 @@ export async function attachCanvasGestures(element, dotNetRef, enabled, lockTouc
     registerDensityRef(dotNetRef);
 
     const activeDirectPointers = new Set();
+
+    // Lock keeps every touch; any other mode shares the pans the page can scroll in (see pageScrollAxes)
+    const updateTouchAction = () => {
+        if (!element.isConnected) {
+            return;
+        }
+        const pan = lockTouches ? 'none' : pageScrollAxes(element);
+        if (element.getAttribute('data-appomobi-touch') !== pan) {
+            element.setAttribute('data-appomobi-touch', pan);
+        }
+    };
+    ensureTouchActionStyle();
+    updateTouchAction();
+    const pageObserver = typeof ResizeObserver === 'function' ? new ResizeObserver(updateTouchAction) : null;
+    pageObserver?.observe(document.documentElement);
+    pageObserver?.observe(document.body);
+    window.addEventListener('resize', updateTouchAction);
 
     const invokePointer = (type, event) => {
         const offset = getOffset(element, event);
@@ -237,6 +289,10 @@ export async function attachCanvasGestures(element, dotNetRef, enabled, lockTouc
 
             if (type === 'pointerdown' && isDirectTouchPointer) {
                 activeDirectPointers.add(event.pointerId);
+            }
+
+            if ((type === 'pointerup' || type === 'pointercancel') && isDirectTouchPointer) {
+                updateTouchAction();
             }
 
             if (((policy & POLICY_CAPTURE_POINTER) !== 0 || (type === 'pointerdown' && isDirectTouchPointer)) && typeof element.setPointerCapture === 'function') {
@@ -367,7 +423,16 @@ export async function attachCanvasGestures(element, dotNetRef, enabled, lockTouc
         document.addEventListener(name, handler, { passive: false, capture: true });
     }
 
-    element.__drawnUiGestures = { handlers, documentHandlers, dotNetRef };
+    element.__drawnUiGestures = {
+        handlers,
+        documentHandlers,
+        dotNetRef,
+        cleanup: () => {
+            window.removeEventListener('resize', updateTouchAction);
+            pageObserver?.disconnect();
+            element.removeAttribute('data-appomobi-touch');
+        }
+    };
 }
 
 export function detachCanvasGestures(element) {

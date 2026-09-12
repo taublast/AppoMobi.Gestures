@@ -183,7 +183,7 @@ Inject `TouchEffect`, attach it to an `ElementReference` after render, pass your
 @implements IAsyncDisposable
 @using AppoMobi.Gestures
 
-<div @ref="_container" style="width:400px;height:300px;touch-action:none;">
+<div @ref="_container" style="width:400px;height:300px;">
     <!-- content -->
 </div>
 
@@ -200,7 +200,7 @@ Inject `TouchEffect`, attach it to an `ElementReference` after render, pass your
 }
 ```
 
-> **Important**: set `touch-action: none` on the element so the browser does not consume pointer events before JS sees them.
+> **Touch and page scrolling**: the library sets the element's `touch-action` itself, overriding any inline value. With `TouchHandlingStyle.Lock` it is `none` and the element keeps every touch. In the other modes it is the axes the page (or a scrolling ancestor) can scroll, like a MAUI view inside a native `ScrollView`: a finger pan along a page axis scrolls the page and your listener gets `Cancelled`, taps and the other axis reach your listener, and a page that cannot scroll keeps every touch.
 
 ### IGestureListener in Blazor
 
@@ -311,6 +311,8 @@ public void OnGestureEvent(TouchActionType type, TouchActionEventArgs args, Touc
 | `Manual` | Dynamic control via `WIllLock` at runtime — use for carousels inside ScrollView |
 | `SoftLock` | Shares gestures with parent native scrolling surfaces until your control clearly takes over |
 | `Disabled` | Same as `InputTransparent = true` |
+
+In the browser (`AppoMobi.Blazor.Gestures`), `Lock` keeps every touch and wheel on the element. The other modes hand the page the touch pans along the axes it can scroll; the wheel scrolls the page except in `Lock`, and in `Manual` while `WIllLock` is `Locked`.
 
 ### Manual Mode Example
 
