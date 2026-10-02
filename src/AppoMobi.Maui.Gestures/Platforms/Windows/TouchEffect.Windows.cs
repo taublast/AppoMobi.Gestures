@@ -86,14 +86,26 @@ namespace AppoMobi.Gestures
             //var device = GetTouchDevice(evt);
             var wheelDelta = pointerPoint?.Properties?.MouseWheelDelta ?? 0;
 
-            float scaleFactorAdjustment = wheelDelta > 0 ? 1.05f : 0.95f;
-            ScaleFactor = Math.Max(ScaleLimitMin, Math.Min(ScaleFactor * scaleFactorAdjustment, ScaleLimitMax));
+            // A precision touchpad sends the sideways part of a two-finger swipe as separate horizontal wheel
+            // events: mark them, so a vertical list does not take them as vertical steps. Windows reports them
+            // positive to the right; Delta is positive toward the start (left), like a vertical wheel turned up.
+            var horizontal = pointerPoint?.Properties?.IsHorizontalMouseWheel == true;
+            if (horizontal)
+            {
+                wheelDelta = -wheelDelta;
+            }
+            else
+            {
+                float scaleFactorAdjustment = wheelDelta > 0 ? 1.05f : 0.95f;
+                ScaleFactor = Math.Max(ScaleLimitMin, Math.Min(ScaleFactor * scaleFactorAdjustment, ScaleLimitMax));
+            }
 
             activePointerIds.Add(args.Pointer.PointerId);
             Wheel = new WheelEventArgs()
             {
                 Delta = wheelDelta / WheelDelta,
                 Scale = (float)ScaleFactor,
+                IsHorizontal = horizontal,
                 Center = new PointF((float)windowsPoint.X * TouchEffect.Density, (float)windowsPoint.Y * TouchEffect.Density)
             };
 
