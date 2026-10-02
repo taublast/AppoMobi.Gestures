@@ -317,8 +317,10 @@ namespace AppoMobi.Gestures
             if (touch.Type == UITouchType.Stylus)
                 return PointerDeviceType.Pen;
 
-            // Check for indirect pointer (mouse/trackpad) - iOS 13.4+
-            if (touch.Type == UITouchType.Indirect)
+            // Mouse or trackpad click (iOS 13.4+). Indirect is the Apple TV remote, not a pointer. UIKit marks pointer
+            // clicks only when the app declares UIApplicationSupportsIndirectInputEvents = true in Info.plist; without
+            // it they arrive as plain finger touches.
+            if (touch.Type == UITouchType.IndirectPointer)
                 return PointerDeviceType.Mouse;
 
             // Direct touch
@@ -334,8 +336,8 @@ namespace AppoMobi.Gestures
 
         private bool IsPointerEvent(UITouch touch)
         {
-            // iOS 13.4+ provides TouchType.Indirect for mouse/trackpad input
-            return touch.Type == UITouchType.Indirect || touch.Type == UITouchType.Stylus;
+            // iOS 13.4+ provides TouchType.IndirectPointer for mouse/trackpad input (see GetPointerDeviceType)
+            return touch.Type == UITouchType.IndirectPointer || touch.Type == UITouchType.Stylus;
         }
 
         private MouseButtons GetCurrentPressedButtons(UIEvent evt)
