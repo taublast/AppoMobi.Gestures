@@ -168,14 +168,16 @@ namespace AppoMobi.Gestures
                 {
                     _hoverRecognizer = new UIHoverGestureRecognizer(HandleHover);
                     _view.AddGestureRecognizer(_hoverRecognizer);
-                }
 
-                // Add two-finger tap recognizer for right-click if mouse attached only
-                _twoFingerTapRecognizer = new UITapGestureRecognizer(HandleTwoFingerTap)
-                {
-                    ButtonMaskRequired = UIEventButtonMask.Secondary, Delegate = this
-                };
-                _view.AddGestureRecognizer(_twoFingerTapRecognizer);
+                    // Secondary click (right button, two-finger trackpad click) of a mouse or trackpad. Not on an
+                    // iPhone, and it receives pointer touches only (ShouldReceiveTouch): on iOS 26 a plain finger tap
+                    // satisfied ButtonMaskRequired and every tap also sent a mouse right click.
+                    _twoFingerTapRecognizer = new UITapGestureRecognizer(HandleTwoFingerTap)
+                    {
+                        ButtonMaskRequired = UIEventButtonMask.Secondary, Delegate = this
+                    };
+                    _view.AddGestureRecognizer(_twoFingerTapRecognizer);
+                }
             }
 
             CheckLockPan();
@@ -269,6 +271,12 @@ namespace AppoMobi.Gestures
             {
                 Debug.WriteLine($"[ShouldReceiveTouch] Pan recognizer rejecting touch type: {touch.Type}");
                 return false; // Disallow touches, only allow trackpad/mouse scroll
+            }
+
+            // the secondary click recognizer: a mouse or trackpad click only, never a finger
+            if (recognizer == _twoFingerTapRecognizer)
+            {
+                return touch.Type == UITouchType.IndirectPointer;
             }
 
             return true; // Allow touches for other recognizers
