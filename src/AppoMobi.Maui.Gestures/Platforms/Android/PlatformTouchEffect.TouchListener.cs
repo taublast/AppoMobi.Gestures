@@ -205,6 +205,9 @@ public partial class PlatformTouchEffect
                 case MotionEventToolType.Stylus:
                 case MotionEventToolType.Eraser:
                     return PointerDeviceType.Pen;
+                // a finger hovers only through the system (TalkBack explore by touch): never a mouse
+                case MotionEventToolType.Finger:
+                    return PointerDeviceType.Touch;
                 case MotionEventToolType.Mouse:
                 default:
                     return PointerDeviceType.Mouse;

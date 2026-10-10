@@ -135,6 +135,12 @@ namespace AppoMobi.Gestures
                     _view?.RemoveGestureRecognizer(_twoFingerTapRecognizer);
                 }
 
+                if (_hoverRecognizer != null)
+                {
+                    _view?.RemoveGestureRecognizer(_hoverRecognizer);
+                    _hoverRecognizer = null;
+                }
+
                 _view?.RemoveGestureRecognizer(this);
 
                 DetachPanning();
@@ -156,9 +162,13 @@ namespace AppoMobi.Gestures
                 _view.UserInteractionEnabled = true;
                 _view.MultipleTouchEnabled = true;
 
-                // Add hover tracking using UIHoverGestureRecognizer
-                var hoverGestureRecognizer = new UIHoverGestureRecognizer(HandleHover);
-                _view.AddGestureRecognizer(hoverGestureRecognizer);
+                // Hover tracking: a mouse / trackpad pointer or a hovering Apple Pencil (iPad, Mac Catalyst). An iPhone has
+                // neither, and there the recognizer reported a hover where a finger had just lifted.
+                if (UIDevice.CurrentDevice.UserInterfaceIdiom != UIUserInterfaceIdiom.Phone)
+                {
+                    _hoverRecognizer = new UIHoverGestureRecognizer(HandleHover);
+                    _view.AddGestureRecognizer(_hoverRecognizer);
+                }
 
                 // Add two-finger tap recognizer for right-click if mouse attached only
                 _twoFingerTapRecognizer = new UITapGestureRecognizer(HandleTwoFingerTap)
@@ -173,6 +183,7 @@ namespace AppoMobi.Gestures
 
         PointF _lastPoint;
         private UITapGestureRecognizer _twoFingerTapRecognizer;
+        private UIHoverGestureRecognizer _hoverRecognizer;
 
         public override bool ShouldRequireFailureOfGestureRecognizer(UIGestureRecognizer otherGestureRecognizer)
         {
@@ -358,13 +369,29 @@ namespace AppoMobi.Gestures
             if (_parent == null || IsViewOrAncestorHidden(this.View))
                 return;
 
+            // Began / Changed are hover moves; Ended / Cancelled mean the pointer is gone, not that it moved there
+            if (recognizer.State != UIGestureRecognizerState.Began && recognizer.State != UIGestureRecognizerState.Changed)
+                return;
+
             var location = recognizer.LocationInView(_view);
             var point = new PointF((float)(location.X * TouchEffect.Density),
                 (float)(location.Y * TouchEffect.Density));
 
             // Fire hover event (no button pressed during hover)
-            // Using PointerDeviceType.Mouse as default - Apple Pencil hover would need iOS 16.1+ UIPointerInteraction
-            _parent.FireEventPointerWithMouse(0, point, PointerDeviceType.Mouse, 1.0f);
+            _parent.FireEventPointerWithMouse(0, point, GetHoverDeviceType(recognizer), 1.0f);
+        }
+
+        /// <summary>
+        /// A hovering Apple Pencil reports its height above the screen (zOffset, iOS / Mac Catalyst 16.1+); a mouse or
+        /// trackpad pointer always reports 0.
+        /// </summary>
+        private static PointerDeviceType GetHoverDeviceType(UIHoverGestureRecognizer recognizer)
+        {
+            if ((OperatingSystem.IsIOSVersionAtLeast(16, 1) || OperatingSystem.IsMacCatalystVersionAtLeast(16, 1))
+                && recognizer.ZOffset > 0)
+                return PointerDeviceType.Pen;
+
+            return PointerDeviceType.Mouse;
         }
 
         private void HandleTwoFingerTap(UITapGestureRecognizer recognizer)
