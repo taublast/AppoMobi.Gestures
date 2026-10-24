@@ -21,6 +21,9 @@ namespace AppoMobi.Gestures
         {
             _view = view;
             _parent = parent;
+            // UIKit holds touchesEnded of the views below until a recognizer ends or fails; this one stays Possible,
+            // so native views hosted inside the canvas would never see their touch end
+            DelaysTouchesEnded = false;
         }
 
         #region Lock Pan
@@ -66,7 +69,7 @@ namespace AppoMobi.Gestures
 
             _childPanGestureRecognizer = new UIPanGestureRecognizer(HandlePan)
             {
-                CancelsTouchesInView = false, Delegate = this, AllowedScrollTypesMask = UIScrollTypeMask.All
+                CancelsTouchesInView = false, DelaysTouchesEnded = false, Delegate = this, AllowedScrollTypesMask = UIScrollTypeMask.All
             };
             _view.AddGestureRecognizer(_childPanGestureRecognizer);
         }
