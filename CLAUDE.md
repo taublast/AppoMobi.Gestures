@@ -23,7 +23,9 @@ The repo name is still `AppoMobi.Maui.Gestures`, but the package family is broad
 
 ## Build and validation
 
-There are no dedicated test projects in this repo at the moment. Validate with targeted builds first.
+There are no unit test projects. Validate with targeted builds first.
+
+iOS / Mac Catalyst touch delivery has regression tests: `dev/AppleTouchTests` (an app referencing the library source) driven by `dev/apple-touch-tests.sh` on a Mac (`PLATFORM=maccatalyst` for Catalyst). It needs Xcode, the MAUI workload, an unlocked screen and Accessibility permission for the shell, and exits non-zero on any failed check. Run it after any change to `TouchRecognizer.Apple.cs` or `PlatformTouchEffect.Apple.cs`.
 
 Common commands:
 
