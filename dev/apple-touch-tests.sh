@@ -23,7 +23,10 @@ KEEP=${KEEP:-}
 [ -n "$KEEP" ] || trap 'rm -rf "$WORK"' EXIT
 
 # PLATFORM=ios (default) runs on a simulator; PLATFORM=maccatalyst runs the same app on this Mac.
-PLATFORM=${PLATFORM:-ios}
+# MSBuild reads environment variables as properties, and an exported PLATFORM collides with its own
+# $(Platform), which silently moves the build output to bin/<platform>/. Take a copy and unset it.
+TARGET=${PLATFORM:-ios}
+unset PLATFORM
 DEVICE_NAME=${DEVICE_NAME:-"AppleTouchTests iPhone"}
 DEVICE_TYPE=${DEVICE_TYPE:-com.apple.CoreSimulator.SimDeviceType.iPhone-16}
 
@@ -49,6 +52,15 @@ case "locked":
     let locked = (d?["CGSSessionScreenIsLocked"] as? Int) == 1
     print(locked ? "locked" : "unlocked")
     exit(locked ? 1 : 0)
+case "activate":
+    // Bring the app to the front: a click on an unfocused window is spent activating it.
+    let pid = Int(a[2])!
+    if let app = NSRunningApplication(processIdentifier: pid_t(pid)) {
+        app.activate(options: [.activateAllWindows])
+        usleep(600_000)
+        exit(0)
+    }
+    exit(1)
 case "windowpid":
     // windowpid <pid> -> "x y w h" of that process's biggest on-screen window.
     // Needed for Mac Catalyst, where the app's own window and a simulator window can share a name.
@@ -104,7 +116,7 @@ case "drag":
     usleep(120_000)
     post(.leftMouseUp, p2)
 default:
-    print("usage: uitap locked | window <name> | windowpid <pid> | tap x y [ms] | drag x1 y1 x2 y2 [steps]")
+    print("usage: uitap locked | window <name> | windowpid <pid> | activate <pid> | tap x y [ms] | drag x1 y1 x2 y2 [steps]")
     exit(2)
 }
 SWIFT
@@ -117,11 +129,14 @@ fi
 # Hold the display awake so the screen cannot lock halfway through the run.
 caffeinate -d -i -w $$ &
 
-if [ "$PLATFORM" = "maccatalyst" ]; then
+if [ "$TARGET" = "maccatalyst" ]; then
   # ------------------------------------------------------------ Mac Catalyst
   WINDOW_NAME="AppleTouchTests"
   say "building (maccatalyst)..."
-  dotnet build "$PROJ" -f net10.0-maccatalyst -c Debug -v q --nologo > "$WORK/build.log" 2>&1 \
+  # The RID is required: without it the first build after a clean reports success and emits no
+  # app bundle at all, and only a second build produces one.
+  [ "$(uname -m)" = "arm64" ] && RID=maccatalyst-arm64 || RID=maccatalyst-x64
+  dotnet build "$PROJ" -f net10.0-maccatalyst -c Debug -p:RuntimeIdentifier=$RID     -v q --nologo > "$WORK/build.log" 2>&1 \
     || { tail -30 "$WORK/build.log"; die "build failed"; }
   APP=$(find "$ROOT/dev/AppleTouchTests/bin/Debug/net10.0-maccatalyst" -maxdepth 2 -name '*.app' -type d | head -1)
   [ -z "$APP" ] && die "built app bundle not found"
@@ -176,7 +191,14 @@ waitfor() { # waitfor <pattern> <seconds>
 
 waitfor "CALIB READY" 90 || { kill_app; tail -20 "$LOG"; die "the app never started"; }
 
-if [ "$PLATFORM" = "maccatalyst" ]; then
+# Put the window we are about to tap in front, otherwise the first click only activates it.
+if [ "$TARGET" = "maccatalyst" ]; then
+  "$WORK/uitap" activate "$APP_PID" >/dev/null 2>&1
+else
+  "$WORK/uitap" activate "$(pgrep -x Simulator | head -1)" >/dev/null 2>&1
+fi
+
+if [ "$TARGET" = "maccatalyst" ]; then
   WIN=$("$WORK/uitap" windowpid "$APP_PID") || { kill_app; die "the app's window is not on screen"; }
 else
   WIN=$("$WORK/uitap" window "$WINDOW_NAME") || { kill_app; die "simulator window not found on screen"; }
@@ -195,7 +217,7 @@ try=0
 while [ $try -lt 6 ]; do
   have=$(calib_count)
   [ "$have" -ge 2 ] && break
-  if [ "$PLATFORM" = "maccatalyst" ]; then
+  if [ "$TARGET" = "maccatalyst" ]; then
     WIN=$("$WORK/uitap" windowpid "$APP_PID")
   else
     WIN=$("$WORK/uitap" window "$WINDOW_NAME")
