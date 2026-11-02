@@ -791,7 +791,16 @@ namespace AppoMobi.Gestures
 
                     }
 
+                    // A scroll (trackpad, wheel, momentum) carries its own movement in Distance, set by the
+                    // platform that read it: its Location is where the pointer is, not how far the content
+                    // moved, so the distance between two events says nothing about the scroll. Filling it from
+                    // the locations would throw the real delta away.
+                    var scrolled = args.Pointer is { IsScrolling: true } ? args.Distance : null;
                     TouchActionEventArgs.FillDistanceInfo(args, _lastArgs);
+                    if (scrolled != null)
+                    {
+                        args.Distance = scrolled;
+                    }
 
                     if (action == TouchActionType.Wheel)
                     {
