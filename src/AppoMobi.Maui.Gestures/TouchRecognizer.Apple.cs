@@ -7,7 +7,11 @@ using UIKit;
 
 namespace AppoMobi.Gestures
 {
+#if MACCATALYST
+    class TouchRecognizer : UIGestureRecognizer, IUIGestureRecognizerDelegate, IUIContextMenuInteractionDelegate
+#else
     class TouchRecognizer : UIGestureRecognizer, IUIGestureRecognizerDelegate
+#endif
     {
         volatile PlatformTouchEffect _parent;
         UIView _view;
@@ -229,6 +233,14 @@ namespace AppoMobi.Gestures
         {
             try
             {
+#if MACCATALYST
+                if (_contextMenuInteraction != null)
+                {
+                    _view?.RemoveInteraction(_contextMenuInteraction);
+                    _contextMenuInteraction = null;
+                }
+#endif
+
                 if (_twoFingerTapRecognizer != null)
                 {
                     _view?.RemoveGestureRecognizer(_twoFingerTapRecognizer);
@@ -276,6 +288,14 @@ namespace AppoMobi.Gestures
                         ButtonMaskRequired = UIEventButtonMask.Secondary, Delegate = this
                     };
                     _view.AddGestureRecognizer(_twoFingerTapRecognizer);
+
+#if MACCATALYST
+                    // Mac Catalyst does not give the secondary button to a tap recognizer or to the touch path: a
+                    // right click, a two-finger click and a Control-click arrive only as a context menu request.
+                    // The interaction reports it and shows no menu of its own, the app opens its own.
+                    _contextMenuInteraction = new UIContextMenuInteraction(this);
+                    _view.AddInteraction(_contextMenuInteraction);
+#endif
                 }
             }
 
@@ -526,6 +546,34 @@ namespace AppoMobi.Gestures
                     PointerDeviceType.Mouse, 1.0f);
             }
         }
+
+#if MACCATALYST
+        private UIContextMenuInteraction _contextMenuInteraction;
+
+        /// <summary>
+        /// Mac Catalyst asks for a context menu: a right click, a two-finger click or a Control-click. It is reported
+        /// as the secondary button's press and release, as <see cref="HandleTwoFingerTap"/> does, and no menu is
+        /// returned so that none of UIKit's own shows: the app opens whatever it wants where the click was.
+        /// </summary>
+        [Export("contextMenuInteraction:configurationForMenuAtLocation:")]
+        public UIContextMenuConfiguration GetConfigurationForMenu(UIContextMenuInteraction interaction, CGPoint location)
+        {
+            if (_parent == null || IsViewOrAncestorHidden(this.View))
+                return null;
+
+            var point = new PointF((float)(location.X * TouchEffect.Density), (float)(location.Y * TouchEffect.Density));
+
+            _parent.FireEventWithMouse(0, TouchActionType.Pointer, point,
+                MouseButton.Right, 2, MouseButtonState.Pressed, MouseButtons.Right,
+                PointerDeviceType.Mouse, 1.0f);
+
+            _parent.FireEventWithMouse(0, TouchActionType.Pointer, point,
+                MouseButton.Right, 2, MouseButtonState.Released, MouseButtons.None,
+                PointerDeviceType.Mouse, 1.0f);
+
+            return null;
+        }
+#endif
 
         #endregion
 
