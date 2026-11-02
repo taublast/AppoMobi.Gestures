@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using CoreAnimation;
 using CoreGraphics;
 using Foundation;
 using Microsoft.Maui.Controls;
@@ -70,22 +71,101 @@ namespace AppoMobi.Gestures
             if (_childPanGestureRecognizer != null)
                 return;
 
+            // trackpad (continuous: coasts on after the fingers lift) and mouse wheel (discrete notches) apart
             _childPanGestureRecognizer = new UIPanGestureRecognizer(HandlePan)
             {
-                CancelsTouchesInView = false, DelaysTouchesEnded = false, Delegate = this, AllowedScrollTypesMask = UIScrollTypeMask.All
+                CancelsTouchesInView = false, DelaysTouchesEnded = false, Delegate = this, AllowedScrollTypesMask = UIScrollTypeMask.Continuous
             };
             _view.AddGestureRecognizer(_childPanGestureRecognizer);
+
+            _wheelPanGestureRecognizer = new UIPanGestureRecognizer(HandlePan)
+            {
+                CancelsTouchesInView = false, DelaysTouchesEnded = false, Delegate = this, AllowedScrollTypesMask = UIScrollTypeMask.Discrete
+            };
+            _view.AddGestureRecognizer(_wheelPanGestureRecognizer);
         }
 
 
         void DetachPanning()
         {
+            StopMomentum();
+
             if (_childPanGestureRecognizer != null)
             {
                 _view?.RemoveGestureRecognizer(_childPanGestureRecognizer);
                 _childPanGestureRecognizer.Delegate = null;
                 _childPanGestureRecognizer = null;
             }
+
+            if (_wheelPanGestureRecognizer != null)
+            {
+                _view?.RemoveGestureRecognizer(_wheelPanGestureRecognizer);
+                _wheelPanGestureRecognizer.Delegate = null;
+                _wheelPanGestureRecognizer = null;
+            }
+        }
+
+        private UIPanGestureRecognizer _wheelPanGestureRecognizer; // mouse wheel notches, no momentum
+
+        // Momentum of a trackpad scroll: UIKit ends the pan when the fingers lift and sends nothing after, where macOS
+        // and Windows keep scrolling until the speed fades. The scroll goes on here with the release velocity, slowing
+        // down as UIScrollView does (DecelerationRateNormal, 0.998 per ms), until a new touch or scroll begins.
+        private CADisplayLink _momentumLink;
+        private PointF _momentumVelocity; // pixels per second
+        private PointF _momentumPoint;
+        private double _momentumLast;
+
+        void StartMomentum(PointF point, PointF velocity)
+        {
+            StopMomentum();
+            var minimum = 50 * TouchEffect.Density;
+            if (Math.Abs(velocity.X) < minimum && Math.Abs(velocity.Y) < minimum)
+                return;
+
+            _momentumPoint = point;
+            _momentumVelocity = velocity;
+            _momentumLast = 0;
+            _momentumLink = CADisplayLink.Create(OnMomentumFrame);
+            _momentumLink.AddToRunLoop(NSRunLoop.Main, NSRunLoopMode.Common);
+        }
+
+        void StopMomentum()
+        {
+            _momentumLink?.Invalidate();
+            _momentumLink = null;
+        }
+
+        void OnMomentumFrame()
+        {
+            var link = _momentumLink;
+            if (link == null || _parent == null || _disposed)
+            {
+                StopMomentum();
+                return;
+            }
+
+            var now = link.Timestamp;
+            if (_momentumLast == 0)
+            {
+                _momentumLast = now;
+                return;
+            }
+
+            var dt = now - _momentumLast;
+            _momentumLast = now;
+
+            var decay = (float)Math.Pow(0.998, dt * 1000);
+            _momentumVelocity = new PointF(_momentumVelocity.X * decay, _momentumVelocity.Y * decay);
+            var delta = new PointF((float)(_momentumVelocity.X * dt), (float)(_momentumVelocity.Y * dt));
+
+            var stop = 20 * TouchEffect.Density;
+            if (Math.Abs(_momentumVelocity.X) < stop && Math.Abs(_momentumVelocity.Y) < stop)
+            {
+                StopMomentum();
+                return;
+            }
+
+            _parent.FireEventScroll(0, _momentumPoint, delta);
         }
 
         /// <summary>
@@ -97,6 +177,19 @@ namespace AppoMobi.Gestures
         /// <param name="gesture">The UIPanGestureRecognizer triggering the action.</param>
         private void HandlePan(UIPanGestureRecognizer gesture)
         {
+            if (gesture.State == UIGestureRecognizerState.Began)
+                StopMomentum(); // a new scroll takes over from the coasting one
+
+            if (gesture.State == UIGestureRecognizerState.Ended && gesture == _childPanGestureRecognizer && _parent != null)
+            {
+                var location = gesture.LocationInView(_view);
+                var velocity = gesture.VelocityInView(_view);
+                StartMomentum(
+                    new PointF((float)(location.X * TouchEffect.Density), (float)(location.Y * TouchEffect.Density)),
+                    new PointF((float)(velocity.X * TouchEffect.Density), (float)(velocity.Y * TouchEffect.Density)));
+                return;
+            }
+
             // Handle two-finger trackpad scroll  
             if (gesture.State == UIGestureRecognizerState.Changed && _parent != null)
             {
@@ -201,6 +294,7 @@ namespace AppoMobi.Gestures
         private bool ShouldRecLocked(UIGestureRecognizer gesturerecognizer, UIGestureRecognizer othergesturerecognizer)
         {
             if (othergesturerecognizer == _childPanGestureRecognizer
+                || othergesturerecognizer == _wheelPanGestureRecognizer
                 || othergesturerecognizer == _twoFingerTapRecognizer ||
                 othergesturerecognizer == this)
             {
@@ -273,7 +367,7 @@ namespace AppoMobi.Gestures
         {
             // For the child pan recognizer (scroll handler), reject direct touches
             // Only accept trackpad/mouse scroll events (which don't come through as touches)
-            if (recognizer == _childPanGestureRecognizer)
+            if (recognizer == _childPanGestureRecognizer || recognizer == _wheelPanGestureRecognizer)
             {
                 Debug.WriteLine($"[ShouldReceiveTouch] Pan recognizer rejecting touch type: {touch.Type}");
                 return false; // Disallow touches, only allow trackpad/mouse scroll
@@ -438,6 +532,8 @@ namespace AppoMobi.Gestures
         // touches = touches of interest; evt = all touches of type UITouch
         public override void TouchesBegan(NSSet touches, UIEvent evt)
         {
+            StopMomentum(); // a touch or a click stops a coasting trackpad scroll
+
             base.TouchesBegan(touches, evt);
 
             if (IsViewOrAncestorHidden(this.View))
