@@ -35,8 +35,11 @@ namespace AppoMobi.Gestures
 
             this.CancelsTouchesInView = false;
 
+            // the pan recognizer takes no touches (ShouldReceiveTouch), only trackpad and mouse-wheel scrolls: an iPad or
+            // a Mac (Mac Catalyst) gets them in every mode, an iPhone has neither
             if (_parent.FormsEffect.TouchMode == TouchHandlingStyle.Lock ||
-                _parent.FormsEffect.TouchMode == TouchHandlingStyle.Manual)
+                _parent.FormsEffect.TouchMode == TouchHandlingStyle.Manual ||
+                UIDevice.CurrentDevice.UserInterfaceIdiom != UIUserInterfaceIdiom.Phone)
             {
                 AttachPanning();
             }
